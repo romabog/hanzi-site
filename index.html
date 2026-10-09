@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="site.title">Маг Иероглифов — тренажёр китайских иероглифов с боевой системой</title>
+<meta name="description" content="Онлайн-тренажёр китайских иероглифов: 500 знаков с пиньинь, рисование по памяти, оценка точности и боевая система с 30 врагами и 7 боссами."
+<meta name="description-i18n" content="site.desc">>
+<meta name="theme-color" content="#070b18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Маг Иероглифов — тренажёр китайских иероглифов">
+<meta property="og:description" content="500 иероглифов, рисование по памяти, оценка точности, 30 врагов и 7 боссов.">
+<meta property="og:locale" content="ru_RU">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ================= ШАПКА ================= -->
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="seal" aria-hidden="true">字</span>
+      <span>Маг Иероглифов</span>
+    </a>
+    <nav class="nav" aria-label="Основное меню">
+      <a href="#play" data-i18n="nav.play">Играть</a>
+      <a href="#features" data-i18n="nav.features">Возможности</a>
+      <a href="#how" data-i18n="nav.how">Как играть</a>
+      <a href="#chars" data-i18n="nav.chars">Иероглифы</a>
+      <a href="#enemies" data-i18n="nav.enemies">Противники</a>
+    </nav>
+    <button class="btn primary small" data-jump-play data-i18n="nav.playBtn">Играть</button>
+      <span class="langswitch" id="siteLang" role="group" data-i18n-aria="lang.switch" aria-label="Язык"><button class="langbtn" type="button" data-lang="ru" data-i18n="lang.ru">Рус</button><button class="langbtn" type="button" data-lang="en" data-i18n="lang.en">Eng</button><button class="langbtn" type="button" data-lang="zh" data-i18n="lang.zh">中文</button></span>
+  </div>
+</header>
+
+<!-- ================= ГЕРОЙ ================= -->
+<section class="hero" id="top">
+  <div class="glowchar" aria-hidden="true">字</div>
+  <div class="wrap hero-inner">
+    <h1 data-i18n="hero.title">Маг Иероглифов</h1>
+    <p class="lead" data-i18n="hero.lead">Тренажёр китайских иероглифов, где точность письма превращается в силу удара.</p>
+    <p class="sub" data-i18n="hero.sub">Обведи знак — и игра оценит форму и расположение штрихов, а от точности зависит урон.
+      500 иероглифов с пиньинь и переводом, 30 врагов, 7 боссов и пентатоническая музыка.</p>
+    <div class="hero-actions">
+      <button class="btn primary" data-jump-play data-i18n="hero.cta">▶&nbsp;Начать играть</button>
+      <a class="btn" href="#how" data-i18n="hero.cta2">Как это работает</a>
+    </div>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span><b>500</b>&nbsp;иероглифов</span>
+      <span class="badge"><span class="dot"></span><b>30</b>&nbsp;врагов</span>
+      <span class="badge"><span class="dot"></span><b>7</b>&nbsp;боссов</span>
+      <span class="badge"><span class="dot"></span><b>4</b>&nbsp;ступени сложности</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИГРА ================= -->
+<section class="section" id="play">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Игра</span>
+      <h2 data-i18n="play.title">Играть прямо здесь</h2>
+      <p data-i18n="play.text">Ничего устанавливать не нужно — игра работает в браузере, на компьютере и на телефоне.
+         Она загрузится, когда вы прокрутите до этого места.</p>
+    </div>
+
+    <div class="game-bar">
+      <div class="versions" role="tablist" aria-label="Версия игры">
+        <button class="vbtn" role="tab" type="button" data-version="classic" data-i18n="play.classic">Классическая</button>
+        <button class="vbtn" role="tab" type="button" data-version="anime" data-i18n="play.anime">Аниме-версия</button>
+      </div>
+      <div class="game-meta">
+        <span class="pill">Версия: <b id="versionPill">Аниме-версия</b></span>
+        <button class="btn small" id="fsBtn" type="button" data-i18n="play.fullscreen">Полный экран</button>
+      </div>
+    </div>
+
+    <div class="frame-box" id="frameBox">
+      <div class="frame-note">
+        <div class="spinner" aria-hidden="true"></div>
+        <div data-i18n="play.loading">Загрузка игры…</div>
+      </div>
+      <iframe id="gameFrame" title="Игра «Маг Иероглифов»" allow="autoplay; fullscreen"
+        data-src-classic="game/classic/index.html"
+        data-src-anime="game/anime/index.html"></iframe>
+    </div>
+
+    <p class="frame-hint" data-i18n="play.hint">Звук включается после первого клика по игре. Чем точнее обведёшь знак, тем сильнее удар.
+       Прогресс не сохраняется — каждая партия начинается заново.</p>
+
+    <noscript>
+      <p class="frame-hint" data-i18n="play.noscript">Для встроенной игры нужен JavaScript. Можно открыть версию напрямую:
+        <a href="game/classic/index.html">классическая</a> или
+        <a href="game/anime/index.html">аниме-версия</a>.</p>
+    </noscript>
+  </div>
+</section>
+
+<!-- ================= ВОЗМОЖНОСТИ ================= -->
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Возможности</span>
+      <h2 data-i18n="feat.title">Учи руки, а не учебник</h2>
+      <p data-i18n="feat.text">Тренажёр построен вокруг главного в китайском письме — начертания. Знак мало узнать, его надо уметь написать.</p>
+    </div>
+    <div class="grid f3">
+      <div class="card"><span class="ico" aria-hidden="true">📚</span><h3 data-i18n="feat.f1.t">500 иероглифов</h3>
+        <p data-i18n="feat.f1.d">От простых 一 и 人 до многосоставных знаков. У каждого — пиньинь, перевод и число штрихов.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">✍️</span><h3 data-i18n="feat.f2.t">Оценка письма</h3>
+        <p data-i18n="feat.f2.d">Алгоритм сравнивает форму и положение ваших штрихов с образцом и выставляет точность от 0 до 100%.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">⚔️</span><h3 data-i18n="feat.f3.t">Боевая система</h3>
+        <p data-i18n="feat.f3.d">Враги атакуют по таймеру. Не успел начертить верный знак или промахнулся — теряешь здоровье.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">🔥</span><h3 data-i18n="feat.f4.t">Комбо и мана</h3>
+        <p data-i18n="feat.f4.d">Серия точных знаков усиливает удар. Мана ограничивает самые мощные приёмы — думай, когда бить.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">🎵</span><h3 data-i18n="feat.f5.t">Музыка и звук</h3>
+        <p data-i18n="feat.f5.d">Мелодии на пентатонике, отдельные темы для боя, боссов и поражения. Включается по клику.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">📴</span><h3 data-i18n="feat.f6.t">Работает офлайн</h3>
+        <p data-i18n="feat.f6.d">Вся игра — статические файлы без серверной части. После загрузки страницы интернет не нужен.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= КАК ИГРАТЬ ================= -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Как играть</span>
+      <h2 data-i18n="how.title">Пять секунд до первого боя</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><h3 data-i18n="how.s1.t">Выбери знак</h3>
+        <p data-i18n="how.s1.d">На панели справа показаны иероглифы прошлых раундов. Выбирай тот, что по силам.</p></div>
+      <div class="step"><h3 data-i18n="how.s2.t">Обведи по памяти</h3>
+        <p data-i18n="how.s2.d">Рисуй мышью или пальцем в поле. Подсказку можно включить, но она снизит награду.</p></div>
+      <div class="step"><h3 data-i18n="how.s3.t">Проверь точность</h3>
+        <p data-i18n="how.s3.d">Игра покажет, насколько ты попал в образец по форме и по месту, и начислит урон.</p></div>
+      <div class="step"><h3 data-i18n="how.s4.t">Побеждай</h3>
+        <p data-i18n="how.s4.d">Каждые 10 ходов выходит босс. С уровнем противники становятся крупнее, злее и точнее бьют.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИЕРОГЛИФЫ ================= -->
+<section class="section" id="chars">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Словарь</span>
+      <h2 data-i18n="chars.title">От простого к сложному</h2>
+      <p data-i18n="chars.text">Тренажёр ведёт от одноштриховых знаков к многосоставным. Вот выборка: от лёгких к трудным
+         (наведи курсор на знак — появится пиньинь и перевод).</p>
+    </div>
+    <div class="charwall" id="charwall"><div class="char" data-t-ru="yī — , один, 1 штрих(ов)" data-t-en="yī — , one, 1 strokes" data-t-zh="yī — , 一, 1 画" title="yī — , один, 1 штрих(ов)">一</div>
+<div class="char" data-t-ru="rù — , входить, 2 штрих(ов)" data-t-en="rù — , enter, 2 strokes" data-t-zh="rù — , 进入, 2 画" title="rù — , входить, 2 штрих(ов)">入</div>
+<div class="char" data-t-ru="jǐ — , столик, 2 штрих(ов)" data-t-en="jǐ — , small table, 2 strokes" data-t-zh="jǐ — , 几；小桌, 2 画" title="jǐ — , столик, 2 штрих(ов)">几</div>
+<div class="char" data-t-ru="kǒu — , рот, 3 штрих(ов)" data-t-en="kǒu — , mouth, 3 strokes" data-t-zh="kǒu — , 嘴, 3 画" title="kǒu — , рот, 3 штрих(ов)">口</div>
+<div class="char" data-t-ru="me — , вопросительная частица, 3 штрих(ов)" data-t-en="me — , interrogative particle, 3 strokes" data-t-zh="me — , 助词，什么, 3 画" title="me — , вопросительная частица, 3 штрих(ов)">么</div>
+<div class="char" data-t-ru="fēi — , летать, 3 штрих(ов)" data-t-en="fēi — , fly, 3 strokes" data-t-zh="fēi — , 飞, 3 画" title="fēi — , летать, 3 штрих(ов)">飞</div>
+<div class="char" data-t-ru="yǐ — , уже, 3 штрих(ов)" data-t-en="yǐ — , already, 3 strokes" data-t-zh="yǐ — , 已经, 3 画" title="yǐ — , уже, 3 штрих(ов)">已</div>
+<div class="char" data-t-ru="yǔ — , с, 3 штрих(ов)" data-t-en="yǔ — , and, 3 strokes" data-t-zh="yǔ — , 和, 3 画" title="yǔ — , с, 3 штрих(ов)">与</div>
+<div class="char" data-t-ru="xīn — , сердце, 4 штрих(ов)" data-t-en="xīn — , heart, 4 strokes" data-t-zh="xīn — , 心, 4 画" title="xīn — , сердце, 4 штрих(ов)">心</div>
+<div class="char" data-t-ru="piàn — , ломтик, 4 штрих(ов)" data-t-en="piàn — , slice, 4 strokes" data-t-zh="piàn — , 片, 4 画" title="piàn — , ломтик, 4 штрих(ов)">片</div>
+<div class="char" data-t-ru="fāng — , сторона, 4 штрих(ов)" data-t-en="fāng — , a square, 4 strokes" data-t-zh="fāng — , 方形；方向, 4 画" title="fāng — , сторона, 4 штрих(ов)">方</div>
+<div class="char" data-t-ru="cóng — , из, 4 штрих(ов)" data-t-en="cóng — , from, 4 strokes" data-t-zh="cóng — , 从, 4 画" title="cóng — , из, 4 штрих(ов)">从</div>
+<div class="char" data-t-ru="bǐ — , сравнивать, 4 штрих(ов)" data-t-en="bǐ — , to compare, 4 strokes" data-t-zh="bǐ — , 比较, 4 画" title="bǐ — , сравнивать, 4 штрих(ов)">比</div>
+<div class="char" data-t-ru="tiān — , небо, 4 штрих(ов)" data-t-en="tiān — , sky, 4 strokes" data-t-zh="tiān — , 天空, 4 画" title="tiān — , небо, 4 штрих(ов)">天</div>
+<div class="char" data-t-ru="zhuān — , специальный, 4 штрих(ов)" data-t-en="zhuān — , monopolize, 4 strokes" data-t-zh="zhuān — , 专门, 4 画" title="zhuān — , специальный, 4 штрих(ов)">专</div>
+<div class="char" data-t-ru="shū — , книга, 4 штрих(ов)" data-t-en="shū — , book, 4 strokes" data-t-zh="shū — , 书, 4 画" title="shū — , книга, 4 штрих(ов)">书</div>
+<div class="char" data-t-ru="qiè — , резать, 4 штрих(ов)" data-t-en="qiè — , cut, 4 strokes" data-t-zh="qiè — , 切, 4 画" title="qiè — , резать, 4 штрих(ов)">切</div>
+<div class="char" data-t-ru="chē — , повозка, 4 штрих(ов)" data-t-en="chē — , cart, 4 strokes" data-t-zh="chē — , 车, 4 画" title="chē — , повозка, 4 штрих(ов)">车</div>
+<div class="char" data-t-ru="lì — , стоять, 5 штрих(ов)" data-t-en="lì — , stand, 5 strokes" data-t-zh="lì — , 站立, 5 画" title="lì — , стоять, 5 штрих(ов)">立</div>
+<div class="char" data-t-ru="lìng — , приказ, 5 штрих(ов)" data-t-en="lìng — , cause; command, 5 strokes" data-t-zh="lìng — , 命令, 5 画" title="lìng — , приказ, 5 штрих(ов)">令</div>
+<div class="char" data-t-ru="bì — , обязательно, 5 штрих(ов)" data-t-en="bì — , surely, 5 strokes" data-t-zh="bì — , 必须, 5 画" title="bì — , обязательно, 5 штрих(ов)">必</div>
+<div class="char" data-t-ru="yè — , занятие, 5 штрих(ов)" data-t-en="yè — , profession, 5 strokes" data-t-zh="yè — , 行业, 5 画" title="yè — , занятие, 5 штрих(ов)">业</div>
+<div class="char" data-t-ru="běi — , север, 5 штрих(ов)" data-t-en="běi — , north, 5 strokes" data-t-zh="běi — , 北, 5 画" title="běi — , север, 5 штрих(ов)">北</div>
+<div class="char" data-t-ru="qù — , уходить, 5 штрих(ов)" data-t-en="qù — , go away, 5 strokes" data-t-zh="qù — , 去, 5 画" title="qù — , уходить, 5 штрих(ов)">去</div>
+<div class="char" data-t-ru="shēng — , рождаться, 5 штрих(ов)" data-t-en="shēng — , life, 5 strokes" data-t-zh="shēng — , 生长, 5 画" title="shēng — , рождаться, 5 штрих(ов)">生</div>
+<div class="char" data-t-ru="shù — , искусство, 5 штрих(ов)" data-t-en="shù — , art, 5 strokes" data-t-zh="shù — , 技术, 5 画" title="shù — , искусство, 5 штрих(ов)">术</div>
+<div class="char" data-t-ru="jiā — , добавлять, 5 штрих(ов)" data-t-en="jiā — , add to, 5 strokes" data-t-zh="jiā — , 加, 5 画" title="jiā — , добавлять, 5 штрих(ов)">加</div>
+<div class="char" data-t-ru="jī — , ударять, 5 штрих(ов)" data-t-en="jī — , strike, 5 strokes" data-t-zh="jī — , 击打, 5 画" title="jī — , ударять, 5 штрих(ов)">击</div>
+<div class="char" data-t-ru="diàn — , электричество, 5 штрих(ов)" data-t-en="diàn — , electricity, 5 strokes" data-t-zh="diàn — , 电, 5 画" title="diàn — , электричество, 5 штрих(ов)">电</div>
+<div class="char" data-t-ru="fā — , отправлять, 5 штрих(ов)" data-t-en="fā — , issue, 5 strokes" data-t-zh="fā — , 发出, 5 画" title="fā — , отправлять, 5 штрих(ов)">发</div>
+<div class="char" data-t-ru="cì — , раз, 6 штрих(ов)" data-t-en="cì — , order, 6 strokes" data-t-zh="cì — , 次, 6 画" title="cì — , раз, 6 штрих(ов)">次</div>
+<div class="char" data-t-ru="duō — , много, 6 штрих(ов)" data-t-en="duō — , much, 6 strokes" data-t-zh="duō — , 多, 6 画" title="duō — , много, 6 штрих(ов)">多</div>
+<div class="char" data-t-ru="chī — , есть, 6 штрих(ов)" data-t-en="chī — , eat, 6 strokes" data-t-zh="chī — , 吃, 6 画" title="chī — , есть, 6 штрих(ов)">吃</div>
+<div class="char" data-t-ru="gòng — , вместе, 6 штрих(ов)" data-t-en="gòng — , together with, 6 strokes" data-t-zh="gòng — , 共同, 6 画" title="gòng — , вместе, 6 штрих(ов)">共</div>
+<div class="char" data-t-ru="rú — , если, 6 штрих(ов)" data-t-en="rú — , if, 6 strokes" data-t-zh="rú — , 如果, 6 画" title="rú — , если, 6 штрих(ов)">如</div>
+<div class="char" data-t-ru="guāng — , свет, 6 штрих(ов)" data-t-en="guāng — , light, 6 strokes" data-t-zh="guāng — , 光, 6 画" title="guāng — , свет, 6 штрих(ов)">光</div>
+<div class="char" data-t-ru="dǎo — , вести, 6 штрих(ов)" data-t-en="dǎo — , direct, 6 strokes" data-t-zh="dǎo — , 引导, 6 画" title="dǎo — , вести, 6 штрих(ов)">导</div>
+<div class="char" data-t-ru="lùn — , обсуждать, 6 штрих(ов)" data-t-en="lùn — , debate, 6 strokes" data-t-zh="lùn — , 争论, 6 画" title="lùn — , обсуждать, 6 штрих(ов)">论</div>
+<div class="char" data-t-ru="liè — , ряд, 6 штрих(ов)" data-t-en="liè — , a line, 6 strokes" data-t-zh="liè — , 排列, 6 画" title="liè — , ряд, 6 штрих(ов)">列</div>
+<div class="char" data-t-ru="zài — , находиться, 6 штрих(ов)" data-t-en="zài — , be at, 6 strokes" data-t-zh="zài — , 在, 6 画" title="zài — , находиться, 6 штрих(ов)">在</div>
+<div class="char" data-t-ru="jiàn — , предмет, 6 штрих(ов)" data-t-en="jiàn — , numerary adjunct for article, 6 strokes" data-t-zh="jiàn — , 件, 6 画" title="jiàn — , предмет, 6 штрих(ов)">件</div>
+<div class="char" data-t-ru="sè — , цвет, 6 штрих(ов)" data-t-en="sè — , color, 6 strokes" data-t-zh="sè — , 颜色, 6 画" title="sè — , цвет, 6 штрих(ов)">色</div>
+<div class="char" data-t-ru="shōu — , собирать, 6 штрих(ов)" data-t-en="shōu — , gather together, 6 strokes" data-t-zh="shōu — , 收, 6 画" title="shōu — , собирать, 6 штрих(ов)">收</div>
+<div class="char" data-t-ru="xī — , запад, 6 штрих(ов)" data-t-en="xī — , west(ern), 6 strokes" data-t-zh="xī — , 西, 6 画" title="xī — , запад, 6 штрих(ов)">西</div>
+<div class="char" data-t-ru="lǎo — , старый, 6 штрих(ов)" data-t-en="lǎo — , old, 6 strokes" data-t-zh="lǎo — , 老, 6 画" title="lǎo — , старый, 6 штрих(ов)">老</div>
+<div class="char" data-t-ru="nà — , тот, 6 штрих(ов)" data-t-en="nà — , that, 6 strokes" data-t-zh="nà — , 那, 6 画" title="nà — , тот, 6 штрих(ов)">那</div>
+<div class="char" data-t-ru="yīng — , следует, 7 штрих(ов)" data-t-en="yīng — , should, 7 strokes" data-t-zh="yīng — , 应当, 7 画" title="yīng — , следует, 7 штрих(ов)">应</div>
+<div class="char" data-t-ru="tīng — , слушать, 7 штрих(ов)" data-t-en="tīng — , hear, 7 strokes" data-t-zh="tīng — , 听, 7 画" title="tīng — , слушать, 7 штрих(ов)">听</div>
+<div class="char" data-t-ru="zuò — , делать, 7 штрих(ов)" data-t-en="zuò — , make, 7 strokes" data-t-zh="zuò — , 做, 7 画" title="zuò — , делать, 7 штрих(ов)">作</div>
+<div class="char" data-t-ru="shí — , время, 7 штрих(ов)" data-t-en="shí — , time, 7 strokes" data-t-zh="shí — , 时间, 7 画" title="shí — , время, 7 штрих(ов)">时</div>
+<div class="char" data-t-ru="kè — , грамм, 7 штрих(ов)" data-t-en="kè — , gram, 7 strokes" data-t-zh="kè — , 克, 7 画" title="kè — , грамм, 7 штрих(ов)">克</div>
+<div class="char" data-t-ru="jì — , рубеж, 7 штрих(ов)" data-t-en="jì — , border, 7 strokes" data-t-zh="jì — , 边际, 7 画" title="jì — , рубеж, 7 штрих(ов)">际</div>
+<div class="char" data-t-ru="jí — , тотчас, 7 штрих(ов)" data-t-en="jí — , promptly, 7 strokes" data-t-zh="jí — , 立即, 7 画" title="jí — , тотчас, 7 штрих(ов)">即</div>
+<div class="char" data-t-ru="lì — , выгода, 7 штрих(ов)" data-t-en="lì — , gains, 7 strokes" data-t-zh="lì — , 利益, 7 画" title="lì — , выгода, 7 штрих(ов)">利</div>
+<div class="char" data-t-ru="liǎng — , два, 7 штрих(ов)" data-t-en="liǎng — , two, 7 strokes" data-t-zh="liǎng — , 两, 7 画" title="liǎng — , два, 7 штрих(ов)">两</div>
+<div class="char" data-t-ru="lǐ — , внутри, 7 штрих(ов)" data-t-en="lǐ — , unit of distance, 7 strokes" data-t-zh="lǐ — , 里边, 7 画" title="lǐ — , внутри, 7 штрих(ов)">里</div>
+<div class="char" data-t-ru="jìn — , входить, 7 штрих(ов)" data-t-en="jìn — , advance, 7 strokes" data-t-zh="jìn — , 进去, 7 画" title="jìn — , входить, 7 штрих(ов)">进</div>
+<div class="char" data-t-ru="zhǎo — , искать, 7 штрих(ов)" data-t-en="zhǎo — , search, 7 strokes" data-t-zh="zhǎo — , 寻找, 7 画" title="zhǎo — , искать, 7 штрих(ов)">找</div>
+<div class="char" data-t-ru="jí — , крайний, 7 штрих(ов)" data-t-en="jí — , extreme, 7 strokes" data-t-zh="jí — , 极, 7 画" title="jí — , крайний, 7 штрих(ов)">极</div>
+<div class="char" data-t-ru="fǎ — , закон, 8 штрих(ов)" data-t-en="fǎ — , law, 8 strokes" data-t-zh="fǎ — , 法律, 8 画" title="fǎ — , закон, 8 штрих(ов)">法</div>
+<div class="char" data-t-ru="xué — , учиться, 8 штрих(ов)" data-t-en="xué — , learning, 8 strokes" data-t-zh="xué — , 学习, 8 画" title="xué — , учиться, 8 штрих(ов)">学</div>
+<div class="char" data-t-ru="de — , притяжательная частица, 8 штрих(ов)" data-t-en="de — , possessive, 8 strokes" data-t-zh="de — , 助词，表示所属, 8 画" title="de — , притяжательная частица, 8 штрих(ов)">的</div>
+<div class="char" data-t-ru="dào — , прибывать, 8 штрих(ов)" data-t-en="dào — , go to, 8 strokes" data-t-zh="dào — , 抵达, 8 画" title="dào — , прибывать, 8 штрих(ов)">到</div>
+<div class="char" data-t-ru="gāi — , следует, 8 штрих(ов)" data-t-en="gāi — , should, 8 strokes" data-t-zh="gāi — , 该当, 8 画" title="gāi — , следует, 8 штрих(ов)">该</div>
+<div class="char" data-t-ru="zhí — , прямой, 8 штрих(ов)" data-t-en="zhí — , straight, 8 strokes" data-t-zh="zhí — , 直, 8 画" title="zhí — , прямой, 8 штрих(ов)">直</div>
+<div class="char" data-t-ru="qīng — , синий, 8 штрих(ов)" data-t-en="qīng — , blue, 8 strokes" data-t-zh="qīng — , 青色, 8 画" title="qīng — , синий, 8 штрих(ов)">青</div>
+<div class="char" data-t-ru="shǐ — , начинать, 8 штрих(ов)" data-t-en="shǐ — , begin, 8 strokes" data-t-zh="shǐ — , 开始, 8 画" title="shǐ — , начинать, 8 штрих(ов)">始</div>
+<div class="char" data-t-ru="lín — , лес, 8 штрих(ов)" data-t-en="lín — , forest, 8 strokes" data-t-zh="lín — , 树林, 8 画" title="lín — , лес, 8 штрих(ов)">林</div>
+<div class="char" data-t-ru="xiàn — , линия, 8 штрих(ов)" data-t-en="xiàn — , line, 8 strokes" data-t-zh="xiàn — , 线, 8 画" title="xiàn — , линия, 8 штрих(ов)">线</div>
+<div class="char" data-t-ru="zhuǎn — , поворачивать, 8 штрих(ов)" data-t-en="zhuǎn — , shift, 8 strokes" data-t-zh="zhuǎn — , 转, 8 画" title="zhuǎn — , поворачивать, 8 штрих(ов)">转</div>
+<div class="char" data-t-ru="guī — , правило, 8 штрих(ов)" data-t-en="guī — , rules, 8 strokes" data-t-zh="guī — , 规矩, 8 画" title="guī — , правило, 8 штрих(ов)">规</div>
+<div class="char" data-t-ru="zǒng — , общий, 9 штрих(ов)" data-t-en="zǒng — , collect, 9 strokes" data-t-zh="zǒng — , 总共, 9 画" title="zǒng — , общий, 9 штрих(ов)">总</div>
+<div class="char" data-t-ru="qīn — , родной, 9 штрих(ов)" data-t-en="qīn — , relatives, 9 strokes" data-t-zh="qīn — , 亲人, 9 画" title="qīn — , родной, 9 штрих(ов)">亲</div>
+<div class="char" data-t-ru="xiǎn — , являть, 9 штрих(ов)" data-t-en="xiǎn — , manifest, 9 strokes" data-t-zh="xiǎn — , 显现, 9 画" title="xiǎn — , являть, 9 штрих(ов)">显</div>
+<div class="char" data-t-ru="jué — , чувствовать, 9 штрих(ов)" data-t-en="jué — , to wake up from sleep, 9 strokes" data-t-zh="jué — , 感觉, 9 画" title="jué — , чувствовать, 9 штрих(ов)">觉</div>
+<div class="char" data-t-ru="jiè — , граница, 9 штрих(ов)" data-t-en="jiè — , boundary, 9 strokes" data-t-zh="jiè — , 界限, 9 画" title="jiè — , граница, 9 штрих(ов)">界</div>
+<div class="char" data-t-ru="zhàn — , война, 9 штрих(ов)" data-t-en="zhàn — , war, 9 strokes" data-t-zh="zhàn — , 战争, 9 画" title="zhàn — , война, 9 штрих(ов)">战</div>
+<div class="char" data-t-ru="nán — , юг, 9 штрих(ов)" data-t-en="nán — , south, 9 strokes" data-t-zh="nán — , 南, 9 画" title="nán — , юг, 9 штрих(ов)">南</div>
+<div class="char" data-t-ru="yuàn — , двор, 9 штрих(ов)" data-t-en="yuàn — , courtyard, 9 strokes" data-t-zh="yuàn — , 院子, 9 画" title="yuàn — , двор, 9 штрих(ов)">院</div>
+<div class="char" data-t-ru="chí — , держать, 9 штрих(ов)" data-t-en="chí — , sustain, 9 strokes" data-t-zh="chí — , 保持, 9 画" title="chí — , держать, 9 штрих(ов)">持</div>
+<div class="char" data-t-ru="zhǐ — , палец, 9 штрих(ов)" data-t-en="zhǐ — , finger, 9 strokes" data-t-zh="zhǐ — , 手指, 9 画" title="zhǐ — , палец, 9 штрих(ов)">指</div>
+<div class="char" data-t-ru="biàn — , удобный, 9 штрих(ов)" data-t-en="biàn — , convenience, 9 strokes" data-t-zh="biàn — , 方便, 9 画" title="biàn — , удобный, 9 штрих(ов)">便</div>
+<div class="char" data-t-ru="xī — , отдых, 10 штрих(ов)" data-t-en="xī — , rest, 10 strokes" data-t-zh="xī — , 休息, 10 画" title="xī — , отдых, 10 штрих(ов)">息</div>
+<div class="char" data-t-ru="dǎng — , партия, 10 штрих(ов)" data-t-en="dǎng — , political party, 10 strokes" data-t-zh="dǎng — , 政党, 10 画" title="dǎng — , партия, 10 штрих(ов)">党</div>
+<div class="char" data-t-ru="zhēn — , настоящий, 10 штрих(ов)" data-t-en="zhēn — , real, 10 strokes" data-t-zh="zhēn — , 真, 10 画" title="zhēn — , настоящий, 10 штрих(ов)">真</div>
+<div class="char" data-t-ru="lí — , расставаться, 10 штрих(ов)" data-t-en="lí — , rare beast, 10 strokes" data-t-zh="lí — , 离开, 10 画" title="lí — , расставаться, 10 штрих(ов)">离</div>
+<div class="char" data-t-ru="néng — , мочь, 10 штрих(ов)" data-t-en="néng — , to be able, 10 strokes" data-t-zh="néng — , 能够, 10 画" title="néng — , мочь, 10 штрих(ов)">能</div>
+<div class="char" data-t-ru="tōng — , проходить, 10 штрих(ов)" data-t-en="tōng — , pass through, 10 strokes" data-t-zh="tōng — , 通过, 10 画" title="tōng — , проходить, 10 штрих(ов)">通</div>
+<div class="char" data-t-ru="gé — , образец, 10 штрих(ов)" data-t-en="gé — , pattern, 10 strokes" data-t-zh="gé — , 格式, 10 画" title="gé — , образец, 10 штрих(ов)">格</div>
+<div class="char" data-t-ru="shāng — , торговля, 11 штрих(ов)" data-t-en="shāng — , commerce, 11 strokes" data-t-zh="shāng — , 商业, 11 画" title="shāng — , торговля, 11 штрих(ов)">商</div></div>
+    <p class="charwall-note" data-i18n="chars.note">↑ Несколько десятков из 500 доступных в игре.</p>
+  </div>
+</section>
+
+<!-- ================= ПРОТИВНИКИ ================= -->
+<section class="section" id="enemies">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Противники</span>
+      <h2 data-i18n="enemies.title">30 врагов и 7 боссов</h2>
+      <p data-i18n="enemies.text">В аниме-версии облики нарисованы в стиле сянься. По мере прохождения враг «растёт»:
+         появляются светящиеся глаза, доспехи, оружие и парящие руны ци.</p>
+    </div>
+    <div class="showcase" id="showcase"><div class="show-item" data-ru="Лисёнок-оборотень" data-en="Fox Spirit Cub" data-zh="狐妖幼崽"
+       data-note-ru="лесная нечисть" data-note-en="forest spirits" data-note-zh="林中妖物"
+       data-stage-ru="ступень 1" data-stage-en="stage 1" data-stage-zh="第 1 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 210 236" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="105" cy="224" rx="42" ry="10" fill="rgba(0,0,0,.30)"/>
+  
+  <g class="c-body">
+    <g class="c-tail">
+      <path d="M148 168 q42 -6 44 -42 q-20 20 -46 22 z" fill="#ff9d4d" stroke="#7a3d10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M186 130 q-14 12 -34 16" fill="none" stroke="#fff3d6" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <g class="c-leg-l"><rect x="76" y="176" width="18" height="34" rx="8" fill="#ff9d4d" stroke="#7a3d10" stroke-width="4"/></g>
+    <g class="c-leg-r"><rect x="116" y="176" width="18" height="34" rx="8" fill="#ff9d4d" stroke="#7a3d10" stroke-width="4"/></g>
+    <ellipse cx="105" cy="150" rx="34" ry="38" fill="#ffb86b" stroke="#7a3d10" stroke-width="4"/>
+    <path d="M79 140 q-6 22 6 34 q10 -8 8 -30 z" fill="#ffe9c9" stroke="#7a3d10" stroke-width="3"/>
+    <g class="c-head">
+      <path d="M74 62 l-10 -34 30 18 z" fill="#ff9d4d" stroke="#7a3d10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M136 62 l10 -34 -30 18 z" fill="#ff9d4d" stroke="#7a3d10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M70 56 l-4 -20 18 12 z" fill="#ffd9b0"/>
+      <path d="M140 56 l4 -20 -18 12 z" fill="#ffd9b0"/>
+      <ellipse cx="105" cy="92" rx="38" ry="34" fill="#ffc98a" stroke="#7a3d10" stroke-width="4"/>
+      <ellipse cx="105" cy="108" rx="18" ry="13" fill="#fff3d6" stroke="#7a3d10" stroke-width="3"/>
+      <path d="M99 104 l6 7 6 -7 z" fill="#4a2a10"/>
+      
+    <g>
+      <ellipse cx="90" cy="88" rx="9" ry="10.35" fill="#141a33"/>
+      <ellipse cx="120" cy="88" rx="9" ry="10.35" fill="#141a33"/>
+      <ellipse cx="90" cy="88" rx="6.4799999999999995" ry="7.74" fill="#ff8a2b"/>
+      <ellipse cx="120" cy="88" rx="6.4799999999999995" ry="7.74" fill="#ff8a2b"/>
+      <circle cx="87.75" cy="84.85" r="2.6999999999999997" fill="#ffffff" opacity=".95"/>
+      <circle cx="117.75" cy="84.85" r="2.6999999999999997" fill="#ffffff" opacity=".95"/>
+      <circle cx="92.7" cy="91.6" r="1.44" fill="#ffffff" opacity=".6"/>
+      <circle cx="122.7" cy="91.6" r="1.44" fill="#ffffff" opacity=".6"/>
+    </g>
+      
+    <path d="M77 72 q13 -8 26 -2" fill="none" stroke="#7a3d10" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M133 72 q-13 -8 -26 -2" fill="none" stroke="#7a3d10" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M97 116 q8 7 16 0" fill="none" stroke="#4a2a10" stroke-width="2.6" stroke-linecap="round"/>
+      <g class="c-whisk"><path d="M60 104 l-24 -7 M60 112 l-24 3" stroke="#7a3d10" stroke-width="3" stroke-linecap="round"/>
+      <path d="M150 104 l24 -7 M150 112 l24 3" stroke="#7a3d10" stroke-width="3" stroke-linecap="round"/></g>
+    </g>
+    
+    
+  </g>
+</svg></div>
+        <b>Лисёнок-оборотень</b>
+        <span>лесная нечисть</span>
+        <em>ступень 1</em>
+      </div>
+<div class="show-item" data-ru="Карп-дракон" data-en="Dragon Koi" data-zh="锦鲤化龙"
+       data-note-ru="водные твари" data-note-en="water creatures" data-note-zh="水中精怪"
+       data-stage-ru="ступень 2" data-stage-en="stage 2" data-stage-zh="第 2 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 226 206" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="113" cy="192" rx="46" ry="10" fill="rgba(0,0,0,.30)"/>
+  <g class="c-aura"><ellipse cx="113" cy="100" rx="74" ry="79.92" fill="none" stroke="#6bd5ff" stroke-width="3.0" opacity="0.30"/></g>
+  <g class="c-body">
+    <g class="c-tail"><path d="M188 100 q30 -24 32 -46 q-24 10 -40 30 q-14 -18 -18 -38 q-8 26 4 54 z" fill="#ffe0e8" stroke="#2a5a8a" stroke-width="4" stroke-linejoin="round"/></g>
+    <ellipse cx="106" cy="104" rx="62" ry="34" fill="#ffd0d8" stroke="#2a5a8a" stroke-width="4"/>
+    <path d="M60 92 q46 -22 92 0" fill="none" stroke="#ff8fa8" stroke-width="9" opacity=".8"/>
+    <path d="M56 112 q50 -20 100 2" fill="none" stroke="#ff8fa8" stroke-width="7" opacity=".6"/>
+    <g class="c-fin-t"><path d="M86 74 q18 -30 42 -14 q-22 6 -30 22 z" fill="#a8e6ff" stroke="#2a5a8a" stroke-width="3"/></g>
+    <g class="c-fin-b"><path d="M84 134 q20 28 44 14 q-24 -6 -32 -22 z" fill="#a8e6ff" stroke="#2a5a8a" stroke-width="3"/></g>
+    <g class="c-head">
+      <path d="M52 104 q-26 -4 -34 -18 q22 -6 34 4 z" fill="#ffe0e8" stroke="#2a5a8a" stroke-width="3"/>
+      
+    <g>
+      <ellipse cx="74" cy="96" rx="8" ry="9.2" fill="#141a33"/>
+      <ellipse cx="94" cy="96" rx="8" ry="9.2" fill="#141a33"/>
+      <ellipse cx="74" cy="96" rx="5.76" ry="6.88" fill="#2a8ac8"/>
+      <ellipse cx="94" cy="96" rx="5.76" ry="6.88" fill="#2a8ac8"/>
+      <circle cx="72" cy="93.2" r="2.4" fill="#ffffff" opacity=".95"/>
+      <circle cx="92" cy="93.2" r="2.4" fill="#ffffff" opacity=".95"/>
+      <circle cx="76.4" cy="99.2" r="1.28" fill="#ffffff" opacity=".6"/>
+      <circle cx="96.4" cy="99.2" r="1.28" fill="#ffffff" opacity=".6"/>
+    </g>
+      <path d="M60 116 q10 8 22 2" fill="none" stroke="#2a5a8a" stroke-width="3" stroke-linecap="round"/>
+      <g class="c-whisk"><path d="M44 108 q-18 6 -26 16 M46 116 q-16 12 -20 24" stroke="#2a5a8a" stroke-width="3" stroke-linecap="round" fill="none"/></g>
+      <g class="c-horn"><path d="M70 72 l-6 -26 16 16 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      
+    </g>
+    
+    
+  </g>
+</svg></div>
+        <b>Карп-дракон</b>
+        <span>водные твари</span>
+        <em>ступень 2</em>
+      </div>
+<div class="show-item" data-ru="Тигр-полководец" data-en="Tiger General" data-zh="虎将军"
+       data-note-ru="горные духи" data-note-en="mountain spirits" data-note-zh="山中灵兽"
+       data-stage-ru="ступень 3" data-stage-en="stage 3" data-stage-zh="第 3 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 220 232" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="110" cy="220" rx="50" ry="11" fill="rgba(0,0,0,.30)"/>
+  <g class="c-aura"><ellipse cx="110" cy="116" rx="74" ry="79.92" fill="none" stroke="#ffd166" stroke-width="3.0" opacity="0.30"/><ellipse cx="110" cy="116" rx="90" ry="97.2" fill="none" stroke="#ffd166" stroke-width="2.4" opacity="0.23"/></g>
+  <g class="c-body">
+    <g class="c-tail"><path d="M152 158 q44 -2 42 -44 q-14 22 -42 26 z" fill="#e8a83a" stroke="#5a3a10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M180 128 q10 -10 14 -22" stroke="#3a2410" stroke-width="7" stroke-linecap="round"/></g>
+    <g class="c-leg-l"><rect x="78" y="172" width="22" height="40" rx="9" fill="#e8a83a" stroke="#5a3a10" stroke-width="4"/></g>
+    <g class="c-leg-r"><rect x="120" y="172" width="22" height="40" rx="9" fill="#e8a83a" stroke="#5a3a10" stroke-width="4"/></g>
+    <ellipse cx="110" cy="146" rx="38" ry="40" fill="#f5c451" stroke="#5a3a10" stroke-width="4"/>
+    <path d="M76 128 l14 -10 M144 128 l-14 -10 M78 156 l16 -6 M142 156 l-16 -6" stroke="#3a2410" stroke-width="6" stroke-linecap="round"/>
+    <g class="c-arm-l"><path d="M76 132 q-28 12 -32 44" fill="none" stroke="#e8a83a" stroke-width="14" stroke-linecap="round"/></g>
+    <g class="c-arm-r"><path d="M144 132 q28 12 32 44" fill="none" stroke="#e8a83a" stroke-width="14" stroke-linecap="round"/></g>
+    <g class="c-head">
+      <path d="M74 74 l-8 -28 24 14 z" fill="#f5c451" stroke="#5a3a10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M146 74 l8 -28 -24 14 z" fill="#f5c451" stroke="#5a3a10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M70 62 l4 -14 12 8 z" fill="#ff8a8a"/><path d="M150 62 l-4 -14 -12 8 z" fill="#ff8a8a"/>
+      <ellipse cx="110" cy="92" rx="44" ry="36" fill="#f5c451" stroke="#5a3a10" stroke-width="4"/>
+      <path d="M84 62 l6 12 M136 62 l-6 12 M92 70 l6 10 M128 70 l-6 10" stroke="#3a2410" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="110" cy="108" rx="20" ry="14" fill="#fff3d6" stroke="#5a3a10" stroke-width="3"/>
+      
+    <g>
+      <ellipse cx="96" cy="88" rx="9" ry="10.35" fill="#141a33"/>
+      <ellipse cx="124" cy="88" rx="9" ry="10.35" fill="#141a33"/>
+      <ellipse cx="96" cy="88" rx="6.4799999999999995" ry="7.74" fill="#ffb020"/>
+      <ellipse cx="124" cy="88" rx="6.4799999999999995" ry="7.74" fill="#ffb020"/>
+      <circle cx="93.75" cy="84.85" r="2.6999999999999997" fill="#ffffff" opacity=".95"/>
+      <circle cx="121.75" cy="84.85" r="2.6999999999999997" fill="#ffffff" opacity=".95"/>
+      <circle cx="98.7" cy="91.6" r="1.44" fill="#ffffff" opacity=".6"/>
+      <circle cx="126.7" cy="91.6" r="1.44" fill="#ffffff" opacity=".6"/>
+    </g>
+    <path d="M83 72 q13 -8 26 -2" fill="none" stroke="#5a3a10" stroke-width="4" stroke-linecap="round"/>
+    <path d="M137 72 q-13 -8 -26 -2" fill="none" stroke="#5a3a10" stroke-width="4" stroke-linecap="round"/>
+      <path d="M104 100 l6 6 6 -6 z" fill="#5a3a10"/>
+      <path d="M101 112 q9 10 18 0" fill="none" stroke="#5a3a10" stroke-width="2.8" stroke-linecap="round"/>
+      <g class="c-whisk"><path d="M64 104 l-22 -6 M64 112 l-22 4 M156 104 l22 -6 M156 112 l22 4" stroke="#5a3a10" stroke-width="3" stroke-linecap="round"/></g>
+      <g class="c-armor"><path d="M70 74 q40 -16 80 0 l-6 14 q-34 -12 -68 0 z" fill="#c83a3a" stroke="#7a1a1a" stroke-width="3"/></g>
+    </g>
+    
+    <g class="c-rune"><rect x="99.0" y="50.4" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ffd166" stroke-width="2"/><text x="110.0" y="67.4" font-size="14" fill="#ffd166" text-anchor="middle" font-family="serif">气</text></g><g class="c-rune"><rect x="175.2" y="132.3" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ffd166" stroke-width="2"/><text x="186.2" y="149.3" font-size="14" fill="#ffd166" text-anchor="middle" font-family="serif">力</text></g><g class="c-rune"><rect x="22.8" y="132.3" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ffd166" stroke-width="2"/><text x="33.8" y="149.3" font-size="14" fill="#ffd166" text-anchor="middle" font-family="serif">火</text></g>
+  </g>
+</svg></div>
+        <b>Тигр-полководец</b>
+        <span>горные духи</span>
+        <em>ступень 3</em>
+      </div>
+<div class="show-item" data-ru="Феникс-страж" data-en="Phoenix Guardian" data-zh="凤凰守卫"
+       data-note-ru="огненные и грозовые" data-note-en="fire and thunder" data-note-zh="火与雷"
+       data-stage-ru="ступень 3" data-stage-en="stage 3" data-stage-zh="第 3 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 234 236" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="117" cy="222" rx="46" ry="10" fill="rgba(0,0,0,.30)"/>
+  <g class="c-aura"><ellipse cx="117" cy="116" rx="78" ry="84.24000000000001" fill="none" stroke="#ff7b5c" stroke-width="3.0" opacity="0.30"/><ellipse cx="117" cy="116" rx="94" ry="101.52000000000001" fill="none" stroke="#ff7b5c" stroke-width="2.4" opacity="0.23"/></g>
+  <g class="c-body">
+    <g class="c-tail"><path d="M112 168 q-6 34 4 56 q10 -22 6 -54 z M126 168 q14 30 8 54 q16 -20 6 -52 z"
+      fill="#ffb86b" stroke="#a03a10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M108 180 q-10 26 0 44" fill="none" stroke="#ffe066" stroke-width="5" stroke-linecap="round"/></g>
+    <g class="c-leg-l"><path d="M104 176 v26 M104 202 l-8 8 M104 202 l8 8" fill="none" stroke="#c85a1a" stroke-width="5" stroke-linecap="round"/></g>
+    <g class="c-leg-r"><path d="M126 176 v26 M126 202 l-8 8 M126 202 l8 8" fill="none" stroke="#c85a1a" stroke-width="5" stroke-linecap="round"/></g>
+    <g class="c-wing-l"><path d="M104 110 q-56 -22 -84 12 q34 -2 54 12 q-40 4 -52 34 q40 -14 66 4 q-24 10 -30 32 q36 -22 60 -28 z"
+      fill="#ff9a5c" stroke="#a03a10" stroke-width="4" stroke-linejoin="round"/></g>
+    <g class="c-wing-r"><path d="M130 110 q56 -22 84 12 q-34 -2 -54 12 q40 4 52 34 q-40 -14 -66 4 q24 10 30 32 q-36 -22 -60 -28 z"
+      fill="#ff9a5c" stroke="#a03a10" stroke-width="4" stroke-linejoin="round"/></g>
+    <ellipse cx="117" cy="146" rx="30" ry="38" fill="#ffc98a" stroke="#a03a10" stroke-width="4"/>
+    <path d="M117 112 q-6 34 0 64" fill="none" stroke="#ffe066" stroke-width="4" opacity=".8"/>
+    <g class="c-head">
+      <path d="M117 60 q-6 -20 4 -30 q10 10 6 30 z" fill="#ffe066" stroke="#a03a10" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M79 60 q-10 -20 4 -28 q10 10 6 28 z" fill="#ff9a5c" stroke="#a03a10" stroke-width="3"/>
+      <path d="M155 60 q10 -20 -4 -28 q-10 10 -6 28 z" fill="#ff9a5c" stroke="#a03a10" stroke-width="3"/>
+      <ellipse cx="117" cy="88" rx="32" ry="30" fill="#ffc98a" stroke="#a03a10" stroke-width="4"/>
+      <path d="M117 96 q-14 8 -22 4 q10 4 22 4 q12 0 22 -4 q-8 4 -22 -4 z" fill="#ffe066" stroke="#a03a10" stroke-width="3"/>
+      
+    <g>
+      <ellipse cx="105" cy="84" rx="8" ry="9.2" fill="#141a33"/>
+      <ellipse cx="129" cy="84" rx="8" ry="9.2" fill="#141a33"/>
+      <ellipse cx="105" cy="84" rx="5.76" ry="6.88" fill="#ff3b1a"/>
+      <ellipse cx="129" cy="84" rx="5.76" ry="6.88" fill="#ff3b1a"/>
+      <circle cx="103" cy="81.2" r="2.4" fill="#ffffff" opacity=".95"/>
+      <circle cx="127" cy="81.2" r="2.4" fill="#ffffff" opacity=".95"/>
+      <circle cx="107.4" cy="87.2" r="1.28" fill="#ffffff" opacity=".6"/>
+      <circle cx="131.4" cy="87.2" r="1.28" fill="#ffffff" opacity=".6"/>
+    </g>
+    <path d="M92 68 q13 -8 26 -2" fill="none" stroke="#a03a10" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M142 68 q-13 -8 -26 -2" fill="none" stroke="#a03a10" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M117 104 l-8 8 h16 z" fill="#ffd166" stroke="#a03a10" stroke-width="2"/>
+    </g>
+    <g class="c-fire"><path d="M44 148 q12 18 4 34 q-10 -12 -16 -4 q-4 -18 12 -30 z" fill="#ff6b1a" opacity=".8"/>
+      <path d="M190 148 q-12 18 -4 34 q10 -12 16 -4 q4 -18 -12 -30 z" fill="#ff6b1a" opacity=".8"/></g>
+    <g class="c-rune"><rect x="106.0" y="48.0" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff7b5c" stroke-width="2"/><text x="117.0" y="65.0" font-size="14" fill="#ff7b5c" text-anchor="middle" font-family="serif">气</text></g><g class="c-rune"><rect x="185.7" y="133.5" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff7b5c" stroke-width="2"/><text x="196.7" y="150.5" font-size="14" fill="#ff7b5c" text-anchor="middle" font-family="serif">力</text></g><g class="c-rune"><rect x="26.3" y="133.5" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff7b5c" stroke-width="2"/><text x="37.3" y="150.5" font-size="14" fill="#ff7b5c" text-anchor="middle" font-family="serif">火</text></g>
+  </g>
+</svg></div>
+        <b>Феникс-страж</b>
+        <span>огненные и грозовые</span>
+        <em>ступень 3</em>
+      </div>
+<div class="show-item boss" data-ru="Небесный дракон" data-en="Heavenly Dragon" data-zh="天龙"
+       data-note-ru="босс" data-note-en="boss" data-note-zh="首领"
+       data-stage-ru="ступень 4" data-stage-en="stage 4" data-stage-zh="第 4 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 268 262" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="134" cy="246" rx="70" ry="14" fill="rgba(0,0,0,.30)"/>
+  <g class="c-aura"><ellipse cx="134" cy="132" rx="96" ry="103.68" fill="none" stroke="#7dffb0" stroke-width="3.0" opacity="0.30"/><ellipse cx="134" cy="132" rx="112" ry="120.96000000000001" fill="none" stroke="#7dffb0" stroke-width="2.4" opacity="0.23"/><ellipse cx="134" cy="132" rx="128" ry="138.24" fill="none" stroke="#7dffb0" stroke-width="1.8" opacity="0.16"/></g>
+  <g class="c-qiring">
+    <circle cx="134" cy="132" r="118" fill="none" stroke="#7dffb0" stroke-width="4" opacity=".55"/>
+    <circle cx="134" cy="132" r="132" fill="none" stroke="#7dffb0" stroke-width="2" opacity=".35"/>
+    <circle cx="134" cy="132" r="104" fill="none" stroke="#7dffb0" stroke-width="2" opacity=".3"/>
+  </g>
+  <g class="c-body">
+    <g class="c-tail"><path d="M196 190 q50 -20 46 -76 q-18 30 -44 40 q-20 8 -32 2 z" fill="#3aa86a" stroke="#0e3a24" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M228 138 q14 -16 14 -34" stroke="#7dffb0" stroke-width="7" stroke-linecap="round"/></g>
+    <g class="c-wing-l"><path d="M104 118 q-64 -34 -100 6 q40 -8 64 8 q-46 8 -60 44 q46 -20 78 0 q-26 14 -30 40 q40 -26 74 -34 z"
+      fill="#4ac888" stroke="#0e3a24" stroke-width="5" stroke-linejoin="round"/></g>
+    <g class="c-wing-r"><path d="M164 118 q64 -34 100 6 q-40 -8 -64 8 q46 8 60 44 q-46 -20 -78 0 q26 14 30 40 q-40 -26 -74 -34 z"
+      fill="#4ac888" stroke="#0e3a24" stroke-width="5" stroke-linejoin="round"/></g>
+    <ellipse cx="134" cy="156" rx="52" ry="48" fill="#5ad898" stroke="#0e3a24" stroke-width="5"/>
+    <path d="M86 142 q48 -18 96 0 M88 172 q46 16 92 0" fill="none" stroke="#3aa86a" stroke-width="6"/>
+    <ellipse cx="134" cy="176" rx="30" ry="22" fill="#a8f0c8" stroke="#0e3a24" stroke-width="4"/>
+    <g class="c-neck"><path d="M134 118 q-8 -46 6 -70" fill="none" stroke="#5ad898" stroke-width="30" stroke-linecap="round"/></g>
+    <g class="c-head">
+      <path d="M140 34 q-46 -14 -58 -30 q34 -4 58 16 z" fill="#4ac888" stroke="#0e3a24" stroke-width="4" stroke-linejoin="round"/>
+      <ellipse cx="152" cy="56" rx="46" ry="32" fill="#5ad898" stroke="#0e3a24" stroke-width="5"/>
+      <path d="M152 68 q-18 10 -30 6 q14 8 30 8 q16 0 30 -8 q-12 4 -30 -6 z" fill="#ff9b6b" stroke="#0e3a24" stroke-width="3"/>
+      
+    <g>
+      <ellipse cx="136" cy="50" rx="11" ry="12.649999999999999" fill="#141a33"/>
+      <ellipse cx="170" cy="50" rx="11" ry="12.649999999999999" fill="#141a33"/>
+      <ellipse cx="136" cy="50" rx="7.92" ry="9.459999999999999" fill="#ffd166"/>
+      <ellipse cx="170" cy="50" rx="7.92" ry="9.459999999999999" fill="#ffd166"/>
+      <circle cx="133.25" cy="46.15" r="3.3" fill="#ffffff" opacity=".95"/>
+      <circle cx="167.25" cy="46.15" r="3.3" fill="#ffffff" opacity=".95"/>
+      <circle cx="139.3" cy="54.4" r="1.76" fill="#ffffff" opacity=".6"/>
+      <circle cx="173.3" cy="54.4" r="1.76" fill="#ffffff" opacity=".6"/>
+    </g>
+      
+    <path d="M123 28 q13 -8 26 -2" fill="none" stroke="#0e3a24" stroke-width="5" stroke-linecap="round"/>
+    <path d="M183 28 q-13 -8 -26 -2" fill="none" stroke="#0e3a24" stroke-width="5" stroke-linecap="round"/>
+      <path d="M158 70 l-10 12 h20 z" fill="#fff" stroke="#0e3a24" stroke-width="2"/>
+      <g class="c-whisk"><path d="M104 54 q-30 -12 -40 -6 M104 64 q-30 0 -42 10" stroke="#7dffb0" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+      <g class="c-horns"><path d="M124 28 l-14 -30 24 16 z" fill="#ffd166" stroke="#8a5a00" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M176 28 l14 -30 -24 16 z" fill="#ffd166" stroke="#8a5a00" stroke-width="4" stroke-linejoin="round"/></g>
+      <g class="c-pearl-d"><circle cx="200" cy="44" r="15" fill="#fff" stroke="#ffd166" stroke-width="4"/>
+        <text x="200" y="50" font-size="16" fill="#0e3a24" text-anchor="middle" font-family="serif">珠</text></g>
+    </g>
+    <g class="c-clouds-d"><ellipse cx="40" cy="60" rx="34" ry="14" fill="#c8f0e0" opacity=".45"/>
+      <ellipse cx="232" cy="106" rx="30" ry="12" fill="#c8f0e0" opacity=".4"/>
+      <ellipse cx="34" cy="200" rx="28" ry="12" fill="#c8f0e0" opacity=".35"/></g>
+    <g class="c-rain-d"><path d="M52 236 q20 -8 40 0 t40 0 t40 0 t40 0" fill="none" stroke="#7dffb0" stroke-width="5" opacity=".8"/></g>
+    <g class="c-rune"><rect x="123.0" y="45.4" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#7dffb0" stroke-width="2"/><text x="134.0" y="62.4" font-size="14" fill="#7dffb0" text-anchor="middle" font-family="serif">气</text></g><g class="c-rune"><rect x="239.0" y="97.6" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#7dffb0" stroke-width="2"/><text x="250.0" y="114.6" font-size="14" fill="#7dffb0" text-anchor="middle" font-family="serif">力</text></g><g class="c-rune"><rect x="194.7" y="182.2" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#7dffb0" stroke-width="2"/><text x="205.7" y="199.2" font-size="14" fill="#7dffb0" text-anchor="middle" font-family="serif">火</text></g><g class="c-rune"><rect x="51.3" y="182.2" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#7dffb0" stroke-width="2"/><text x="62.3" y="199.2" font-size="14" fill="#7dffb0" text-anchor="middle" font-family="serif">水</text></g><g class="c-rune"><rect x="7.0" y="97.6" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#7dffb0" stroke-width="2"/><text x="18.0" y="114.6" font-size="14" fill="#7dffb0" text-anchor="middle" font-family="serif">风</text></g>
+  </g>
+</svg></div>
+        <b>Небесный дракон</b>
+        <span>босс</span>
+        <em>ступень 4</em>
+      </div>
+<div class="show-item boss" data-ru="Бессмертный патриарх" data-en="Immortal Patriarch" data-zh="仙祖"
+       data-note-ru="босс" data-note-en="boss" data-note-zh="首领"
+       data-stage-ru="ступень 4" data-stage-en="stage 4" data-stage-zh="第 4 阶">
+        <div class="art" aria-hidden="true"><svg viewBox="0 0 250 272" class="charSvg" aria-hidden="true">
+  <ellipse class="c-shadow" cx="125" cy="256" rx="58" ry="13" fill="rgba(0,0,0,.30)"/>
+  <g class="c-aura"><ellipse cx="125" cy="142" rx="94" ry="101.52000000000001" fill="none" stroke="#ff6bd5" stroke-width="3.0" opacity="0.30"/><ellipse cx="125" cy="142" rx="110" ry="118.80000000000001" fill="none" stroke="#ff6bd5" stroke-width="2.4" opacity="0.23"/><ellipse cx="125" cy="142" rx="126" ry="136.08" fill="none" stroke="#ff6bd5" stroke-width="1.8" opacity="0.16"/></g>
+  <g class="c-qiring">
+    <circle cx="125" cy="142" r="116" fill="none" stroke="#ff6bd5" stroke-width="4" opacity=".55"/>
+    <circle cx="125" cy="142" r="130" fill="none" stroke="#ff6bd5" stroke-width="2" opacity=".35"/>
+    <circle cx="125" cy="142" r="102" fill="none" stroke="#ff6bd5" stroke-width="2" opacity=".3"/>
+  </g>
+  <g class="c-body">
+    <g class="c-robe">
+      <path d="M125 96 q54 8 64 54 l16 86 q-80 22 -160 0 l16 -86 q10 -46 64 -54 z" fill="#e8dcff" stroke="#4a2a7a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M125 100 v138" stroke="#c0a8e8" stroke-width="5"/>
+      <path d="M56 174 q69 -20 138 0" fill="none" stroke="#ffd166" stroke-width="8"/>
+      <path d="M76 142 q49 -22 98 0" fill="none" stroke="#ff6bd5" stroke-width="6"/>
+      <path d="M58 214 q67 20 134 0" fill="none" stroke="#ff6bd5" stroke-width="6"/>
+      <circle cx="104" cy="188" r="7" fill="#ffd166"/><circle cx="125" cy="196" r="7" fill="#ffd166"/><circle cx="146" cy="188" r="7" fill="#ffd166"/>
+    </g>
+    <g class="c-sleeve-l"><path d="M76 114 q-46 26 -50 74 q28 -10 44 -30 z" fill="#f0e8ff" stroke="#4a2a7a" stroke-width="5" stroke-linejoin="round"/></g>
+    <g class="c-sleeve-r"><path d="M174 114 q46 26 50 74 q-28 -10 -44 -30 z" fill="#f0e8ff" stroke="#4a2a7a" stroke-width="5" stroke-linejoin="round"/></g>
+    <g class="c-arm-extra-l"><path d="M52 150 q-30 22 -24 56" fill="none" stroke="#d8c8f0" stroke-width="12" stroke-linecap="round"/></g>
+    <g class="c-arm-extra-r"><path d="M198 150 q30 22 24 56" fill="none" stroke="#d8c8f0" stroke-width="12" stroke-linecap="round"/></g>
+    <g class="c-head">
+      <path d="M125 26 q52 6 52 54 q-52 16 -104 0 q0 -48 52 -54 z" fill="#f0ecff" stroke="#4a2a7a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M125 30 q30 4 40 30 q-40 10 -80 0 q10 -26 40 -30 z" fill="#e0d8f8"/>
+      <path d="M125 18 q-6 -28 8 -36 q14 12 6 38 z" fill="#ffd166" stroke="#8a5a00" stroke-width="4" stroke-linejoin="round"/>
+      <ellipse cx="125" cy="98" rx="44" ry="38" fill="#fdf8f2" stroke="#4a2a7a" stroke-width="5"/>
+      
+    <g>
+      <ellipse cx="107" cy="94" rx="11" ry="12.649999999999999" fill="#141a33"/>
+      <ellipse cx="143" cy="94" rx="11" ry="12.649999999999999" fill="#141a33"/>
+      <ellipse cx="107" cy="94" rx="7.92" ry="9.459999999999999" fill="#ff6bd5"/>
+      <ellipse cx="143" cy="94" rx="7.92" ry="9.459999999999999" fill="#ff6bd5"/>
+      <circle cx="104.25" cy="90.15" r="3.3" fill="#ffffff" opacity=".95"/>
+      <circle cx="140.25" cy="90.15" r="3.3" fill="#ffffff" opacity=".95"/>
+      <circle cx="110.3" cy="98.4" r="1.76" fill="#ffffff" opacity=".6"/>
+      <circle cx="146.3" cy="98.4" r="1.76" fill="#ffffff" opacity=".6"/>
+    </g>
+      
+    <path d="M94 68 q13 -8 26 -2" fill="none" stroke="#6a4a9a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M156 68 q-13 -8 -26 -2" fill="none" stroke="#6a4a9a" stroke-width="6" stroke-linecap="round"/>
+      <path d="M120 114 q6 8 10 0" fill="none" stroke="#c88a9a" stroke-width="3" stroke-linecap="round"/>
+      <path d="M114 124 q11 9 22 0" fill="none" stroke="#c88a9a" stroke-width="3" stroke-linecap="round"/>
+      <g class="c-beard-long"><path d="M125 130 q-10 44 0 62 q10 -18 0 -62 z" fill="#f0ecff" stroke="#4a2a7a" stroke-width="3"/></g>
+      <g class="c-halo-imm"><ellipse cx="125" cy="40" rx="46" ry="14" fill="none" stroke="#ffd166" stroke-width="5"/>
+        <ellipse cx="125" cy="40" rx="34" ry="9" fill="none" stroke="#ff6bd5" stroke-width="3"/></g>
+    </g>
+    <g class="c-flysword">
+      <path d="M28 60 l10 96" stroke="#e8eeff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M22 152 h26" stroke="#c8a840" stroke-width="6" stroke-linecap="round"/>
+      <path d="M222 60 l-10 96" stroke="#e8eeff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M216 152 h26" stroke="#c8a840" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g class="c-swords-more"><path d="M42 40 l8 70 M208 40 l-8 70" stroke="#dfe8ff" stroke-width="6" stroke-linecap="round"/>
+      <path d="M18 40 l8 70 M232 40 l-8 70" stroke="#dfe8ff" stroke-width="5" stroke-linecap="round" opacity=".8"/></g>
+    <g class="c-gates"><path d="M24 246 q0 -60 26 -84 q26 24 26 84" fill="none" stroke="#ffd166" stroke-width="5" opacity=".8"/>
+      <path d="M174 246 q0 -60 26 -84 q26 24 26 84" fill="none" stroke="#ffd166" stroke-width="5" opacity=".8"/>
+      <text x="50" y="216" font-size="20" fill="#ffd166" text-anchor="middle" font-family="serif" opacity=".9">仙</text>
+      <text x="200" y="216" font-size="20" fill="#ffd166" text-anchor="middle" font-family="serif" opacity=".9">道</text></g>
+    <g class="c-rune"><rect x="114.0" y="55.4" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff6bd5" stroke-width="2"/><text x="125.0" y="72.4" font-size="14" fill="#ff6bd5" text-anchor="middle" font-family="serif">气</text></g><g class="c-rune"><rect x="230.0" y="107.6" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff6bd5" stroke-width="2"/><text x="241.0" y="124.6" font-size="14" fill="#ff6bd5" text-anchor="middle" font-family="serif">力</text></g><g class="c-rune"><rect x="185.7" y="192.2" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff6bd5" stroke-width="2"/><text x="196.7" y="209.2" font-size="14" fill="#ff6bd5" text-anchor="middle" font-family="serif">火</text></g><g class="c-rune"><rect x="42.3" y="192.2" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff6bd5" stroke-width="2"/><text x="53.3" y="209.2" font-size="14" fill="#ff6bd5" text-anchor="middle" font-family="serif">水</text></g><g class="c-rune"><rect x="-2.0" y="107.6" width="22" height="22" rx="5" fill="rgba(12,16,36,.72)" stroke="#ff6bd5" stroke-width="2"/><text x="9.0" y="124.6" font-size="14" fill="#ff6bd5" text-anchor="middle" font-family="serif">风</text></g>
+  </g>
+</svg></div>
+        <b>Бессмертный патриарх</b>
+        <span>босс</span>
+        <em>ступень 4</em>
+      </div></div>
+  </div>
+</section>
+
+<!-- ================= ПОДВАЛ ================= -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <strong data-i18n="hero.title">Маг Иероглифов</strong> <span data-i18n="foot.about">— тренажёр китайских иероглифов.</span><br>
+      <span data-i18n="foot.line">500 знаков · оценка точности · боевая система · пентатоническая музыка.</span>
+    </div>
+    <div>
+      <span data-i18n="foot.tech">Полностью на клиенте: HTML · CSS · JS без серверной части.</span><br>
+      <span data-i18n="foot.offline">Работает офлайн после загрузки страницы.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

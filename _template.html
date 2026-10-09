@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="site.title">Маг Иероглифов — тренажёр китайских иероглифов с боевой системой</title>
+<meta name="description" content="Онлайн-тренажёр китайских иероглифов: 500 знаков с пиньинь, рисование по памяти, оценка точности и боевая система с 30 врагами и 7 боссами."
+<meta name="description-i18n" content="site.desc">>
+<meta name="theme-color" content="#070b18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Маг Иероглифов — тренажёр китайских иероглифов">
+<meta property="og:description" content="500 иероглифов, рисование по памяти, оценка точности, 30 врагов и 7 боссов.">
+<meta property="og:locale" content="ru_RU">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ================= ШАПКА ================= -->
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="seal" aria-hidden="true">字</span>
+      <span>Маг Иероглифов</span>
+    </a>
+    <nav class="nav" aria-label="Основное меню">
+      <a href="#play" data-i18n="nav.play">Играть</a>
+      <a href="#features" data-i18n="nav.features">Возможности</a>
+      <a href="#how" data-i18n="nav.how">Как играть</a>
+      <a href="#chars" data-i18n="nav.chars">Иероглифы</a>
+      <a href="#enemies" data-i18n="nav.enemies">Противники</a>
+    </nav>
+    <button class="btn primary small" data-jump-play data-i18n="nav.playBtn">Играть</button>
+      <span class="langswitch" id="siteLang" role="group" data-i18n-aria="lang.switch" aria-label="Язык"><button class="langbtn" type="button" data-lang="ru" data-i18n="lang.ru">Рус</button><button class="langbtn" type="button" data-lang="en" data-i18n="lang.en">Eng</button><button class="langbtn" type="button" data-lang="zh" data-i18n="lang.zh">中文</button></span>
+  </div>
+</header>
+
+<!-- ================= ГЕРОЙ ================= -->
+<section class="hero" id="top">
+  <div class="glowchar" aria-hidden="true">字</div>
+  <div class="wrap hero-inner">
+    <h1 data-i18n="hero.title">Маг Иероглифов</h1>
+    <p class="lead" data-i18n="hero.lead">Тренажёр китайских иероглифов, где точность письма превращается в силу удара.</p>
+    <p class="sub" data-i18n="hero.sub">Обведи знак — и игра оценит форму и расположение штрихов, а от точности зависит урон.
+      500 иероглифов с пиньинь и переводом, 30 врагов, 7 боссов и пентатоническая музыка.</p>
+    <div class="hero-actions">
+      <button class="btn primary" data-jump-play data-i18n="hero.cta">▶&nbsp;Начать играть</button>
+      <a class="btn" href="#how" data-i18n="hero.cta2">Как это работает</a>
+    </div>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span><b>500</b>&nbsp;иероглифов</span>
+      <span class="badge"><span class="dot"></span><b>30</b>&nbsp;врагов</span>
+      <span class="badge"><span class="dot"></span><b>7</b>&nbsp;боссов</span>
+      <span class="badge"><span class="dot"></span><b>4</b>&nbsp;ступени сложности</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИГРА ================= -->
+<section class="section" id="play">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Игра</span>
+      <h2 data-i18n="play.title">Играть прямо здесь</h2>
+      <p data-i18n="play.text">Ничего устанавливать не нужно — игра работает в браузере, на компьютере и на телефоне.
+         Она загрузится, когда вы прокрутите до этого места.</p>
+    </div>
+
+    <div class="game-bar">
+      <div class="versions" role="tablist" aria-label="Версия игры">
+        <button class="vbtn" role="tab" type="button" data-version="classic" data-i18n="play.classic">Классическая</button>
+        <button class="vbtn" role="tab" type="button" data-version="anime" data-i18n="play.anime">Аниме-версия</button>
+      </div>
+      <div class="game-meta">
+        <span class="pill">Версия: <b id="versionPill">Аниме-версия</b></span>
+        <button class="btn small" id="fsBtn" type="button" data-i18n="play.fullscreen">Полный экран</button>
+      </div>
+    </div>
+
+    <div class="frame-box" id="frameBox">
+      <div class="frame-note">
+        <div class="spinner" aria-hidden="true"></div>
+        <div data-i18n="play.loading">Загрузка игры…</div>
+      </div>
+      <iframe id="gameFrame" title="Игра «Маг Иероглифов»" allow="autoplay; fullscreen"
+        data-src-classic="game/classic/index.html"
+        data-src-anime="game/anime/index.html"></iframe>
+    </div>
+
+    <p class="frame-hint" data-i18n="play.hint">Звук включается после первого клика по игре. Чем точнее обведёшь знак, тем сильнее удар.
+       Прогресс не сохраняется — каждая партия начинается заново.</p>
+
+    <noscript>
+      <p class="frame-hint" data-i18n="play.noscript">Для встроенной игры нужен JavaScript. Можно открыть версию напрямую:
+        <a href="game/classic/index.html">классическая</a> или
+        <a href="game/anime/index.html">аниме-версия</a>.</p>
+    </noscript>
+  </div>
+</section>
+
+<!-- ================= ВОЗМОЖНОСТИ ================= -->
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Возможности</span>
+      <h2 data-i18n="feat.title">Учи руки, а не учебник</h2>
+      <p data-i18n="feat.text">Тренажёр построен вокруг главного в китайском письме — начертания. Знак мало узнать, его надо уметь написать.</p>
+    </div>
+    <div class="grid f3">
+      <div class="card"><span class="ico" aria-hidden="true">📚</span><h3 data-i18n="feat.f1.t">500 иероглифов</h3>
+        <p data-i18n="feat.f1.d">От простых 一 и 人 до многосоставных знаков. У каждого — пиньинь, перевод и число штрихов.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">✍️</span><h3 data-i18n="feat.f2.t">Оценка письма</h3>
+        <p data-i18n="feat.f2.d">Алгоритм сравнивает форму и положение ваших штрихов с образцом и выставляет точность от 0 до 100%.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">⚔️</span><h3 data-i18n="feat.f3.t">Боевая система</h3>
+        <p data-i18n="feat.f3.d">Враги атакуют по таймеру. Не успел начертить верный знак или промахнулся — теряешь здоровье.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">🔥</span><h3 data-i18n="feat.f4.t">Комбо и мана</h3>
+        <p data-i18n="feat.f4.d">Серия точных знаков усиливает удар. Мана ограничивает самые мощные приёмы — думай, когда бить.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">🎵</span><h3 data-i18n="feat.f5.t">Музыка и звук</h3>
+        <p data-i18n="feat.f5.d">Мелодии на пентатонике, отдельные темы для боя, боссов и поражения. Включается по клику.</p></div>
+      <div class="card"><span class="ico" aria-hidden="true">📴</span><h3 data-i18n="feat.f6.t">Работает офлайн</h3>
+        <p data-i18n="feat.f6.d">Вся игра — статические файлы без серверной части. После загрузки страницы интернет не нужен.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= КАК ИГРАТЬ ================= -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Как играть</span>
+      <h2 data-i18n="how.title">Пять секунд до первого боя</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><h3 data-i18n="how.s1.t">Выбери знак</h3>
+        <p data-i18n="how.s1.d">На панели справа показаны иероглифы прошлых раундов. Выбирай тот, что по силам.</p></div>
+      <div class="step"><h3 data-i18n="how.s2.t">Обведи по памяти</h3>
+        <p data-i18n="how.s2.d">Рисуй мышью или пальцем в поле. Подсказку можно включить, но она снизит награду.</p></div>
+      <div class="step"><h3 data-i18n="how.s3.t">Проверь точность</h3>
+        <p data-i18n="how.s3.d">Игра покажет, насколько ты попал в образец по форме и по месту, и начислит урон.</p></div>
+      <div class="step"><h3 data-i18n="how.s4.t">Побеждай</h3>
+        <p data-i18n="how.s4.d">Каждые 10 ходов выходит босс. С уровнем противники становятся крупнее, злее и точнее бьют.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИЕРОГЛИФЫ ================= -->
+<section class="section" id="chars">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Словарь</span>
+      <h2 data-i18n="chars.title">От простого к сложному</h2>
+      <p data-i18n="chars.text">Тренажёр ведёт от одноштриховых знаков к многосоставным. Вот выборка: от лёгких к трудным
+         (наведи курсор на знак — появится пиньинь и перевод).</p>
+    </div>
+    <div class="charwall" id="charwall"><!--{{CHARS}}--></div>
+    <p class="charwall-note" data-i18n="chars.note">↑ Несколько десятков из 500 доступных в игре.</p>
+  </div>
+</section>
+
+<!-- ================= ПРОТИВНИКИ ================= -->
+<section class="section" id="enemies">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Противники</span>
+      <h2 data-i18n="enemies.title">30 врагов и 7 боссов</h2>
+      <p data-i18n="enemies.text">В аниме-версии облики нарисованы в стиле сянься. По мере прохождения враг «растёт»:
+         появляются светящиеся глаза, доспехи, оружие и парящие руны ци.</p>
+    </div>
+    <div class="showcase" id="showcase"><!--{{SHOWCASE}}--></div>
+  </div>
+</section>
+
+<!-- ================= ПОДВАЛ ================= -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <strong data-i18n="hero.title">Маг Иероглифов</strong> <span data-i18n="foot.about">— тренажёр китайских иероглифов.</span><br>
+      <span data-i18n="foot.line">500 знаков · оценка точности · боевая система · пентатоническая музыка.</span>
+    </div>
+    <div>
+      <span data-i18n="foot.tech">Полностью на клиенте: HTML · CSS · JS без серверной части.</span><br>
+      <span data-i18n="foot.offline">Работает офлайн после загрузки страницы.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

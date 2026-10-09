@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title data-i18n="app.title">Маг Иероглифов</title>
+<style>
+  :root{
+    --bg1:#070b18;
+    --bg2:#11162e;
+    --panel:rgba(20,26,52,.72);
+    --panel2:rgba(28,36,72,.65);
+    --border:rgba(120,150,255,.22);
+    --cyan:#57e0ff;
+    --purple:#a86bff;
+    --gold:#ffd166;
+    --ink:#eaf2ff;
+    --good:#5effb0;
+    --warn:#ffd166;
+    --bad:#ff6b7a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+    color:#e9efff;
+    background:radial-gradient(1200px 800px at 50% -10%, #232a56 0%, var(--bg2) 45%, var(--bg1) 100%);
+    overflow-x:hidden;
+    min-height:100%;
+    position:relative;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .stars{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(1.5px 1.5px at 20% 30%, #fff 50%, transparent 51%),
+               radial-gradient(1px 1px at 70% 20%, #bcd4ff 50%, transparent 51%),
+               radial-gradient(2px 2px at 45% 70%, #ffe6b0 50%, transparent 51%);
+    background-size:220px 220px, 180px 180px, 260px 260px;
+    opacity:.5; animation:twinkle 6s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{from{opacity:.25}to{opacity:.6}}
+  .nebula{
+    position:fixed;inset:0;z-index:0;pointer-events:none;filter:blur(60px);
+    background:radial-gradient(400px 300px at 80% 20%, rgba(168,107,255,.18), transparent 70%),
+               radial-gradient(500px 350px at 15% 80%, rgba(87,224,255,.14), transparent 70%);
+  }
+  #game{
+    position:relative;z-index:2;
+    max-width:1100px;margin:0 auto;padding:14px 16px 30px;
+  }
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:12px 16px;border:1px solid var(--border);border-radius:16px;
+    background:var(--panel);backdrop-filter:blur(8px);margin-bottom:14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;}
+  .brand .logo{font-size:26px;filter:drop-shadow(0 0 8px rgba(168,107,255,.8));}
+  .hud{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .hud .stat{font-size:14px;color:#c3d0ff;}
+  .hud .stat b{color:#fff;font-size:16px;}
+  .combo{display:inline-block;min-width:34px;text-align:center;padding:2px 8px;border-radius:20px;
+    background:linear-gradient(135deg,#ff9d2e,#ff6bd5);font-weight:800;color:#1a0f00;
+    box-shadow:0 0 14px rgba(255,150,60,.55);transition:.2s;}
+  button{
+    cursor:pointer;border:1px solid var(--border);background:linear-gradient(180deg,#26305c,#181f42);
+    color:#eaf2ff;border-radius:12px;padding:9px 13px;font-size:14px;font-weight:600;
+    transition:.15s;font-family:inherit;
+  }
+  button:hover{filter:brightness(1.2);border-color:var(--cyan);}
+  button:active{transform:translateY(1px);}
+  button.primary{
+    background:linear-gradient(135deg,#2fb7ff,#7a5cff);border-color:#7aa2ff;color:#fff;
+    box-shadow:0 4px 18px rgba(87,140,255,.4);
+  }
+  button.ghost{background:transparent;}
+  button:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+  .mutebtn{font-size:16px;padding:6px 10px;}
+
+  main.stage{
+    display:grid;grid-template-columns:200px 1fr 200px;gap:14px;align-items:stretch;
+  }
+  .side{
+    border:1px solid var(--border);border-radius:18px;background:var(--panel);
+    backdrop-filter:blur(8px);padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:12px;
+    position:relative;overflow:hidden;
+  }
+  .side h3{margin:0;font-size:14px;letter-spacing:1px;color:#9fb4ff;text-transform:uppercase;}
+  .avatar{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:182px;}
+  .charSvg{width:158px;height:auto;overflow:visible;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));}
+  .avatar.enemy .charSvg{width:150px;}
+  .avatar.mage .charSvg{filter:drop-shadow(0 0 18px rgba(87,224,255,.4)) drop-shadow(0 8px 14px rgba(0,0,0,.45));}
+  .avatar.boss{min-height:224px;}
+  .avatar.boss .charSvg{width:202px;filter:drop-shadow(0 0 26px rgba(255,70,70,.6)) drop-shadow(0 8px 14px rgba(0,0,0,.5));}
+  .avatar.boss::before{content:"";position:absolute;inset:0;margin:auto;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,60,60,.32), transparent 68%);animation:cAura 2.2s ease-in-out infinite;}
+
+  /* ===== АНИМЕ-ВЕРСИЯ: ступени облика и свечение по палитре врага ===== */
+  /* Цвет задаёт скрипт (--enemy-color), поэтому рамка и ореол всегда
+     совпадают с самим существом, а не с фиксированным красным. */
+  .avatar.enemy .charSvg{
+    filter:drop-shadow(0 0 14px var(--enemy-glow, rgba(255,255,255,0)))
+           drop-shadow(0 8px 14px rgba(0,0,0,.45));}
+  .avatar.boss .charSvg{
+    filter:drop-shadow(0 0 30px var(--enemy-glow, rgba(255,70,70,.6)))
+           drop-shadow(0 8px 14px rgba(0,0,0,.5));}
+  .avatar.boss::before{
+    background:radial-gradient(circle, var(--enemy-glow, rgba(255,60,60,.32)), transparent 68%);}
+  /* Ступени: чем выше, тем заметнее ореол и живее покачивание. */
+  .avatar.enemy[data-stage="2"]::after,
+  .avatar.enemy[data-stage="3"]::after,
+  .avatar.enemy[data-stage="4"]::after{
+    content:"";position:absolute;inset:0;margin:auto;width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle, var(--enemy-glow, rgba(255,255,255,.2)), transparent 70%);
+    pointer-events:none;animation:cAura 2.6s ease-in-out infinite;}
+  .avatar.enemy[data-stage="3"]::after{width:208px;height:208px;animation-duration:2.0s;}
+  .avatar.enemy[data-stage="4"]::after{width:236px;height:236px;animation-duration:1.5s;}
+  .avatar.enemy[data-stage="4"] .charSvg{animation:cFloat 2.4s ease-in-out infinite;}
+  /* Кольцо ци у сильных ступеней */
+  .avatar.enemy[data-stage="4"]{box-shadow:inset 0 0 60px -20px var(--enemy-color, transparent);border-radius:14px;}
+
+  .stagetag{display:none;font-size:11px;letter-spacing:1px;color:var(--enemy-color,#9fb4ff);
+    text-transform:uppercase;margin:2px 0 4px;opacity:.9;}
+  .avatar.boss ~ .stagetag, .stagetag{color:var(--enemy-color,#9fb4ff);}
+
+  .charSvg .c-crown{display:none;}
+  .avatar.boss .charSvg .c-crown{display:block;}
+
+  .charSvg g{transform-box:fill-box;}
+  .charSvg .c-body{transform-origin:50% 92%;}
+  .charSvg .c-head{transform-origin:50% 92%;}
+  .charSvg .c-arm-l{transform-origin:85% 8%;}
+  .charSvg .c-arm-r{transform-origin:15% 8%;}
+  .charSvg .c-leg-l,.charSvg .c-leg-r{transform-origin:50% 2%;}
+  .charSvg .c-wing-l{transform-origin:100% 40%;}
+  .charSvg .c-wing-r{transform-origin:0% 40%;}
+  .charSvg .c-tail{transform-origin:20% 10%;}
+  .charSvg .c-wisp{transform-origin:50% 6%;}
+  .charSvg .c-mouth{transform-origin:50% 40%;}
+
+  .avatar.entering{animation:cEnter .9s cubic-bezier(.2,.8,.3,1);}
+
+  /* IDLE */
+  .is-idle .c-body{animation:cIdle 2.8s ease-in-out infinite;}
+  .is-idle .c-wisp{animation:cWisp 2.4s ease-in-out infinite;}
+  .is-idle .c-wing-l{animation:cFlapL .8s ease-in-out infinite;}
+  .is-idle .c-wing-r{animation:cFlapR .8s ease-in-out infinite;}
+  .is-idle .c-tail{animation:cTail 2.2s ease-in-out infinite;}
+  .is-idle .c-orb{animation:cOrbIdle 2.4s ease-in-out infinite;}
+  .is-idle .c-orb-glow{animation:cOrbIdle 2.4s ease-in-out infinite;}
+  /* WALK */
+  .is-walk .c-body{animation:cWalk .5s ease-in-out infinite;}
+  .is-walk .c-leg-l{animation:cLegA .5s ease-in-out infinite;}
+  .is-walk .c-leg-r{animation:cLegB .5s ease-in-out infinite;}
+  .is-walk .c-arm-l{animation:cArmA .5s ease-in-out infinite;}
+  .is-walk .c-arm-r{animation:cArmB .5s ease-in-out infinite;}
+  .is-walk .c-wing-l{animation:cFlapL .4s ease-in-out infinite;}
+  .is-walk .c-wing-r{animation:cFlapR .4s ease-in-out infinite;}
+  .is-walk .c-tail{animation:cTail 1.2s ease-in-out infinite;}
+  .is-walk .c-wisp{animation:cWisp 1.1s ease-in-out infinite;}
+  /* ATTACK */
+  .is-attack .c-body{animation:cLunge .55s ease-out;}
+  .is-attack .c-arm-l{animation:cRaise .55s ease-out;}
+  .is-attack .c-arm-r{animation:cSwing .55s ease-out;}
+  .is-attack .c-mouth{animation:cMouth .55s ease-out;}
+  .is-attack .c-orb{animation:cOrbBlast .55s ease-out;}
+  .is-attack .c-wing-l{animation:cFlapL .3s ease-in-out 2;}
+  .is-attack .c-wing-r{animation:cFlapR .3s ease-in-out 2;}
+  /* DEFEND */
+  .is-defend .c-body{animation:cBrace .5s ease-out;}
+  .is-defend .c-arm-l{animation:cGuard .5s ease-out;}
+  .is-defend .c-arm-r{animation:cGuardR .5s ease-out;}
+  .is-defend .c-shield{animation:cShield .8s ease-out;}
+  /* HIT */
+  .is-hit .c-body{animation:cHit .45s ease-out;}
+  .is-hit .charSvg{animation:cRedFlash .45s ease-out;}
+  /* DEATH */
+  .is-death .c-body{animation:cDeath 1.1s ease-in forwards;}
+  .is-death .c-arm-l,.is-death .c-arm-r{animation:cLimp .6s ease-in forwards;}
+
+  @keyframes cAura{0%,100%{opacity:.5;transform:scale(.95)}50%{opacity:.85;transform:scale(1.05)}}
+  /* Парение для высших ступеней: существо словно отрывается от земли. */
+  @keyframes cFloat{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-10px) rotate(.6deg)}}
+  @keyframes cEnter{from{transform:translateX(150px) scale(.85);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
+  @keyframes cIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  @keyframes cWalk{0%,100%{transform:translateY(0) rotate(-1deg)}25%{transform:translateY(-6px) rotate(1.5deg)}
+    75%{transform:translateY(-2px) rotate(-1.5deg)}}
+  @keyframes cLegA{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(20deg)}}
+  @keyframes cLegB{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-18deg)}}
+  @keyframes cArmA{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-16deg)}}
+  @keyframes cArmB{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(16deg)}}
+  @keyframes cLunge{0%{transform:translate(0,0)}45%{transform:translate(30px,-4px) scale(1.05)}100%{transform:translate(0,0)}}
+  @keyframes cRaise{0%{transform:rotate(0)}45%{transform:rotate(-34deg)}100%{transform:rotate(0)}}
+  @keyframes cSwing{0%{transform:rotate(0)}45%{transform:rotate(38deg)}100%{transform:rotate(0)}}
+  @keyframes cBrace{0%{transform:translate(0,0)}40%{transform:translate(-12px,2px) rotate(-4deg)}100%{transform:translate(0,0)}}
+  @keyframes cGuard{0%{transform:rotate(0)}45%{transform:rotate(-30deg)}100%{transform:rotate(0)}}
+  @keyframes cGuardR{0%{transform:rotate(0)}45%{transform:rotate(30deg)}100%{transform:rotate(0)}}
+  @keyframes cShield{0%{opacity:0;transform:scale(.55)}35%{opacity:.95;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+  @keyframes cHit{0%{transform:translate(0,0)}22%{transform:translate(-14px,2px) rotate(-5deg)}55%{transform:translate(7px,-2px) rotate(3deg)}100%{transform:translate(0,0)}}
+  @keyframes cDeath{0%{transform:translate(0,0) rotate(0);opacity:1}55%{transform:translate(6px,14px) rotate(-72deg);opacity:1}
+    100%{transform:translate(14px,34px) rotate(-92deg);opacity:0}}
+  @keyframes cLimp{0%{transform:rotate(0)}100%{transform:rotate(24deg)}}
+  @keyframes cMouth{0%,100%{transform:scale(1,1)}45%{transform:scale(1.25,1.7)}}
+  @keyframes cFlapL{0%,100%{transform:rotate(0)}50%{transform:rotate(-24deg)}}
+  @keyframes cFlapR{0%,100%{transform:rotate(0)}50%{transform:rotate(24deg)}}
+  @keyframes cTail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+  @keyframes cWisp{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(4px) scaleY(1.07)}}
+  @keyframes cOrbIdle{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.14)}}
+  @keyframes cOrbBlast{0%{transform:scale(1)}40%{transform:scale(1.9);opacity:1}100%{transform:scale(1)}}
+  @keyframes cRedFlash{0%{filter:none}25%{filter:brightness(2.2) sepia(1) hue-rotate(-45deg) saturate(5)}100%{filter:none}}
+
+  #game.paused .charSvg, #game.paused .charSvg *, #game.paused .avatar{animation-play-state:paused !important;}
+  .hpwrap{width:100%;}
+  .hptrack{height:14px;border-radius:9px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.12);}
+  .hpfill{height:100%;width:100%;border-radius:9px;transition:width .35s ease;background:linear-gradient(90deg,#38e07a,#8cff9d);}
+  .hpfill.mage{background:linear-gradient(90deg,#4dc4ff,#9be8ff);}
+  .hplabel{display:flex;justify-content:space-between;font-size:12px;margin-top:4px;color:#b7c6ff;}
+  .mana{width:100%;}
+  .timerbar{width:100%;height:8px;border-radius:5px;background:rgba(0,0,0,.4);overflow:hidden;}
+  .timerfill{height:100%;background:linear-gradient(90deg,#ff9d2e,#ff6bd5);border-radius:5px;transition:width .1s linear;}
+  .bossbadge{display:none;position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#ff3b3b,#ff6bd5);
+    color:#fff;font-weight:900;font-size:11px;letter-spacing:1px;padding:3px 9px;border-radius:12px;
+    box-shadow:0 0 16px rgba(255,60,60,.7);}
+
+  .board{
+    border:1px solid var(--border);border-radius:18px;background:var(--panel);
+    backdrop-filter:blur(8px);padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  }
+  .runecard{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .runeBig{font-size:52px;line-height:1;font-family:"KaiTi","STKaiti","Noto Serif SC","SimSun",serif;
+    color:#fff;text-shadow:0 0 18px rgba(87,224,255,.55);}
+  .runemeta{text-align:left;}
+  .runemeta .pinyin{font-size:17px;color:var(--gold);font-weight:600;}
+  .runemeta .mean{font-size:13px;color:#b7c6ff;}
+  .spelltag{font-size:12px;background:rgba(168,107,255,.22);border:1px solid rgba(168,107,255,.4);
+    padding:3px 9px;border-radius:20px;color:#d9c4ff;}
+
+  .seqwrap{width:100%;}
+  .seqbar{display:flex;gap:8px;justify-content:center;align-items:center;padding:8px;border-radius:12px;
+    background:rgba(0,0,0,.28);border:1px solid var(--border);transition:.2s;}
+  .seqbar.combo{border-color:var(--gold);box-shadow:0 0 20px rgba(255,209,102,.35);}
+  .slot{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:30px;font-family:"KaiTi","Noto Serif SC","SimSun",serif;color:#3a4a7a;
+    border:2px dashed rgba(120,150,255,.28);background:rgba(255,255,255,.03);transition:.2s;}
+  .slot.filled{color:#fff;border-style:solid;border-color:var(--cyan);background:rgba(87,224,255,.12);
+    box-shadow:0 0 12px rgba(87,224,255,.35);}
+  .slot.active{border-color:#fff;box-shadow:0 0 12px rgba(255,255,255,.4);}
+  .seqlabel{text-align:center;font-size:13px;color:#8fa2dd;margin-top:6px;min-height:18px;}
+  .seqlabel.combo{color:var(--gold);font-weight:700;}
+
+  .padbox{position:relative;width:100%;max-width:340px;}
+  canvas#pad{
+    width:100%;height:auto;aspect-ratio:1/1;display:block;border-radius:14px;
+    background:radial-gradient(circle at 50% 45%, #1b2342 0%, #10152c 78%);
+    border:2px solid var(--border);touch-action:none;cursor:crosshair;
+    box-shadow:inset 0 0 40px rgba(0,0,0,.5), 0 8px 30px rgba(0,0,0,.35);
+  }
+  .padbox .hintlabel{
+    position:absolute;top:10px;left:12px;font-size:11px;color:#7f92d8;pointer-events:none;letter-spacing:.5px;
+  }
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .feedback{min-height:22px;font-size:14px;font-weight:600;color:var(--cyan);text-align:center;}
+  .feedback.bad{color:var(--bad);} .feedback.good{color:var(--good);}
+
+  /* выбор атаки */
+  .attackwrap{width:100%;}
+  .attackbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .atkcard{display:flex;align-items:center;gap:8px;text-align:left;padding:8px 12px;border-radius:12px;
+    border:1px solid var(--border);background:linear-gradient(180deg,#222a52,#161c3c);min-width:150px;}
+  .atkcard.sel{border-color:var(--cyan);box-shadow:0 0 16px rgba(87,224,255,.4);}
+  .atkcard.combo{border-color:rgba(255,209,102,.5);}
+  .atkcard.combo.sel{border-color:var(--gold);box-shadow:0 0 18px rgba(255,209,102,.45);}
+  .atkicon{font-size:22px;}
+  .atkbody{display:flex;flex-direction:column;line-height:1.25;}
+  .atkbody b{font-size:13px;color:#fff;}
+  .atkrunes{font-family:"KaiTi","Noto Serif SC","SimSun",serif;font-size:22px;color:var(--gold);}
+  .atknote{font-size:11px;color:#9fb4ff;}
+  .atkhint{font-size:12px;color:#7f92d8;align-self:center;}
+
+  /* инвентарь */
+  .invwrap{
+    margin-top:14px;border:1px solid var(--border);border-radius:16px;background:var(--panel);
+    backdrop-filter:blur(8px);padding:12px 14px;
+  }
+  .invwrap h4{margin:0 0 8px;font-size:13px;letter-spacing:1px;color:#9fb4ff;text-transform:uppercase;}
+  .inventory{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;}
+  .invHint{font-size:13px;color:#7f92d8;align-self:center;}
+  .rune{position:relative;display:flex;align-items:center;justify-content:center;width:52px;height:52px;
+    border-radius:12px;font-size:30px;font-family:"KaiTi","Noto Serif SC","SimSun",serif;color:#fff;
+    background:rgba(87,224,255,.10);border:1px solid rgba(120,150,255,.3);}
+  .rune:hover{border-color:var(--cyan);}
+  .rune.selected{border-color:var(--gold);box-shadow:0 0 14px rgba(255,209,102,.5);background:rgba(255,209,102,.14);}
+
+  .particle{position:fixed;z-index:40;width:8px;height:8px;border-radius:50%;pointer-events:none;
+    box-shadow:0 0 8px currentColor;}
+  .dmg{position:fixed;z-index:41;font-weight:900;font-size:30px;pointer-events:none;
+    text-shadow:0 2px 10px rgba(0,0,0,.6);animation:floatUp 1s ease-out forwards;}
+  .dmg.heal{color:var(--good);} .dmg.hurt{color:var(--bad);} .dmg.combo{color:var(--gold);font-size:36px;}
+  @keyframes floatUp{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}
+    100%{opacity:0;transform:translate(-50%,-80px) scale(1)}}
+  .bolt{position:fixed;z-index:39;width:34px;height:34px;pointer-events:none;font-size:30px;
+    filter:drop-shadow(0 0 12px rgba(120,220,255,.9));transition:transform .34s cubic-bezier(.5,-0.1,.9,.4);}
+  .bolt.combo{font-size:40px;filter:drop-shadow(0 0 18px rgba(255,150,60,.95));}
+  .shake{animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(7px,-5px)}
+    60%{transform:translate(-5px,3px)}80%{transform:translate(4px,-2px)}}
+  .flash{animation:redflash .35s;}
+  @keyframes redflash{0%,100%{filter:none}50%{filter:sepia(1) hue-rotate(-40deg) saturate(3) brightness(1.2)}}
+
+  footer.logline{margin-top:12px;text-align:center;font-size:13px;color:#8fa2dd;min-height:20px;}
+
+  /* оверлеи */
+  #overlay,#pauseOverlay{
+    position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    background:rgba(5,8,20,.8);backdrop-filter:blur(6px);padding:20px;
+  }
+  #overlay.hidden,#pauseOverlay.hidden{display:none;}
+  .card{
+    max-width:540px;width:100%;border:1px solid var(--border);border-radius:22px;
+    background:linear-gradient(180deg,#1b2246,#0f1430);padding:28px;text-align:center;
+    box-shadow:0 20px 70px rgba(0,0,0,.6);
+  }
+  .card h1{margin:6px 0 4px;font-size:28px;}
+  .card .sub{color:#9fb4ff;margin-bottom:16px;font-size:15px;}
+  .card .rules{text-align:left;font-size:14px;line-height:1.7;color:#c7d4ff;margin:0 0 18px;padding-left:18px;}
+  .card .rules li{margin:6px 0;}
+  .bigbtn{font-size:17px;padding:13px 26px;border-radius:14px;}
+  .scorefinal{font-size:20px;color:var(--gold);font-weight:800;margin:8px 0;}
+  .keyhint{margin-top:12px;font-size:12px;color:#6f82c4;}
+  .pausetitle{font-size:40px;margin-bottom:8px;}
+
+  @media (max-width:820px){
+    main.stage{grid-template-columns:1fr;}
+    .side{flex-direction:row;flex-wrap:wrap;justify-content:center;}
+    .avatar{min-height:132px;}
+    .charSvg{width:118px;}
+    .avatar.boss{min-height:162px;}
+    .avatar.boss .charSvg{width:152px;}
+  }
+
+  /* ===== Переключатель языка интерфейса ===== */
+  .langswitch{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:10px;background:rgba(20,26,52,.7);}
+  .langbtn{
+    cursor:pointer;border:0;background:transparent;color:#9fb4ff;font-family:inherit;
+    font-size:12px;font-weight:700;padding:5px 9px;border-radius:8px;transition:.15s;line-height:1.2;
+  }
+  .langbtn:hover{color:#fff;background:rgba(120,150,255,.16);}
+  .langbtn[aria-pressed="true"]{background:linear-gradient(135deg,#2fb7ff,#7a5cff);color:#fff;
+    box-shadow:0 3px 12px rgba(87,140,255,.4);}
+</style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="nebula"></div>
+
+  <div id="game">
+    <header class="top">
+      <div class="brand"><span class="logo">🧙‍♂️</span><span>Маг Иероглифов</span></div>
+      <div class="hud">
+        <div class="stat"><span data-i18n="hud.score">Счёт</span> <b id="score">0</b></div>
+        <div class="stat"><span data-i18n="hud.round">Раунд</span> <b id="round">1</b></div>
+        <div class="stat"><span data-i18n="hud.level">Уровень</span> <b id="level">1</b></div>
+        <div class="stat"><span data-i18n="hud.streak">Серия</span> <span class="combo" id="streak">×1</span></div>
+        <button class="mutebtn ghost" id="pauseBtn" data-i18n-title="top.pause" title="Пауза (Esc)">⏸</button>
+        <button class="mutebtn ghost" id="musicBtn" data-i18n-title="top.music" title="8-битная музыка">🔕</button>
+        <button class="mutebtn ghost" id="muteBtn" data-i18n-title="top.sound" title="Звук">🔊</button>
+        <span class="langswitch" id="langSwitch" role="group" aria-label="Язык / Language / 语言"><button class="langbtn" data-lang="ru" type="button">Рус</button><button class="langbtn" data-lang="en" type="button">Eng</button><button class="langbtn" data-lang="zh" type="button">中文</button></span>
+      </div>
+    </header>
+
+    <main class="stage">
+      <!-- МАГ -->
+      <section class="side" id="magePanel">
+        <h3 data-i18n="hud.mage">Маг</h3>
+        <div class="avatar mage char is-idle" id="mageAvatar">
+          <svg viewBox="0 0 200 250" class="charSvg" aria-hidden="true">
+            <ellipse class="c-shadow" cx="100" cy="238" rx="52" ry="11" fill="rgba(0,0,0,.35)"/>
+            <g class="c-body">
+              <g class="c-leg-l">
+                <rect x="80" y="182" width="17" height="42" rx="8" fill="#3b2f74" stroke="#160f2e" stroke-width="4"/>
+                <ellipse cx="88" cy="228" rx="15" ry="9" fill="#2a2150" stroke="#160f2e" stroke-width="4"/>
+              </g>
+              <g class="c-leg-r">
+                <rect x="104" y="182" width="17" height="42" rx="8" fill="#3b2f74" stroke="#160f2e" stroke-width="4"/>
+                <ellipse cx="112" cy="228" rx="15" ry="9" fill="#2a2150" stroke="#160f2e" stroke-width="4"/>
+              </g>
+              <path d="M100 92 C 72 92 60 118 54 178 C 52 196 62 204 100 204 C 138 204 148 196 146 178 C 140 118 128 92 100 92 Z" fill="#6b4bd6" stroke="#160f2e" stroke-width="5"/>
+              <path d="M100 100 C 86 100 82 122 80 178 C 80 190 88 194 100 194 C 112 194 120 190 120 178 C 118 122 114 100 100 100 Z" fill="#b9a6ff" stroke="#160f2e" stroke-width="4"/>
+              <rect x="72" y="138" width="56" height="13" rx="6" fill="#ffd166" stroke="#160f2e" stroke-width="4"/>
+              <g class="c-arm-l">
+                <path d="M78 106 C 60 118 52 138 47 158" fill="none" stroke="#160f2e" stroke-width="19" stroke-linecap="round"/>
+                <path d="M78 106 C 60 118 52 138 47 158" fill="none" stroke="#6b4bd6" stroke-width="13" stroke-linecap="round"/>
+                <circle cx="47" cy="160" r="10" fill="#ffd9b3" stroke="#160f2e" stroke-width="4"/>
+                <g class="c-staff">
+                  <rect x="41" y="58" width="10" height="132" rx="5" fill="#a9673a" stroke="#160f2e" stroke-width="4"/>
+                  <path d="M46 60 l-10 -13 h20 z" fill="#8a4f2b" stroke="#160f2e" stroke-width="3"/>
+                  <circle class="c-orb-glow" cx="46" cy="40" r="24" fill="#57e0ff" opacity=".28"/>
+                  <circle class="c-orb" cx="46" cy="40" r="15" fill="#8ef0ff" stroke="#160f2e" stroke-width="4"/>
+                  <circle cx="41" cy="35" r="5" fill="#ffffff" opacity=".85"/>
+                </g>
+              </g>
+              <g class="c-arm-r">
+                <path d="M122 106 C 140 118 148 136 153 154" fill="none" stroke="#160f2e" stroke-width="19" stroke-linecap="round"/>
+                <path d="M122 106 C 140 118 148 136 153 154" fill="none" stroke="#6b4bd6" stroke-width="13" stroke-linecap="round"/>
+                <circle cx="153" cy="156" r="10" fill="#ffd9b3" stroke="#160f2e" stroke-width="4"/>
+              </g>
+              <g class="c-head">
+                <ellipse cx="100" cy="64" rx="29" ry="30" fill="#ffd9b3" stroke="#160f2e" stroke-width="5"/>
+                <path d="M74 72 C 72 104 86 120 100 120 C 114 120 128 104 126 72 C 120 92 110 98 100 98 C 90 98 80 92 74 72 Z" fill="#f4f5fa" stroke="#160f2e" stroke-width="4"/>
+                <path d="M82 54 q9 -7 17 -3" fill="none" stroke="#160f2e" stroke-width="4" stroke-linecap="round"/>
+                <path d="M118 54 q-9 -7 -17 -3" fill="none" stroke="#160f2e" stroke-width="4" stroke-linecap="round"/>
+                <circle class="c-eye" cx="89" cy="64" r="5.5" fill="#160f2e"/>
+                <circle class="c-eye" cx="111" cy="64" r="5.5" fill="#160f2e"/>
+                <circle cx="91" cy="62" r="1.8" fill="#fff"/>
+                <circle cx="113" cy="62" r="1.8" fill="#fff"/>
+                <ellipse class="c-mouth" cx="100" cy="76" rx="7" ry="5" fill="#ffb9a0" stroke="#160f2e" stroke-width="3"/>
+                <g class="c-hat">
+                  <path d="M100 2 C 93 22 84 38 62 46 L 138 46 C 116 38 107 22 100 2 Z" fill="#7a52e0" stroke="#160f2e" stroke-width="5"/>
+                  <ellipse cx="100" cy="47" rx="55" ry="12" fill="#7a52e0" stroke="#160f2e" stroke-width="5"/>
+                  <rect x="63" y="40" width="74" height="10" rx="5" fill="#ffd166" stroke="#160f2e" stroke-width="4"/>
+                  <path d="M100 14 l3.6 7.4 8.2 1.2 -5.9 5.8 1.4 8.1 -7.3 -3.9 -7.3 3.9 1.4 -8.1 -5.9 -5.8 8.2 -1.2 z" fill="#ffd166" stroke="#160f2e" stroke-width="2.5"/>
+                </g>
+              </g>
+              <circle class="c-shield" cx="100" cy="122" r="80" fill="rgba(87,224,255,.12)" stroke="#57e0ff" stroke-width="6" opacity="0"/>
+            </g>
+          </svg>
+        </div>
+        <div class="hpwrap">
+          <div class="hptrack"><div class="hpfill mage" id="mageHpFill"></div></div>
+          <div class="hplabel"><span data-i18n="hud.health">Здоровье</span><span id="mageHpText">100/100</span></div>
+        </div>
+        <div class="mana"><div class="hplabel"><span data-i18n="hud.mana">Мана</span><span id="manaText">100%</span></div>
+          <div class="hptrack" style="height:10px"><div class="hpfill" id="manaFill" style="background:linear-gradient(90deg,#7a5cff,#b49cff)"></div></div>
+        </div>
+      </section>
+
+      <!-- ДОСКА ДЛЯ ПИСЬМА -->
+      <section class="board">
+        <div class="runecard">
+          <div class="runeBig" id="runeChar">一</div>
+          <div class="runemeta">
+            <div class="pinyin" id="runePy">yī</div>
+            <div class="mean" id="runeMean">один</div>
+          </div>
+          <span class="spelltag" id="spellTag" data-i18n="board.runes">✨ руна</span>
+        </div>
+        <div class="attackwrap">
+          <div class="attackbar" id="attackBar"></div>
+        </div>
+        <div class="seqwrap">
+          <div class="seqbar" id="seqBar">
+            <div class="slot"></div>
+            <div class="slot"></div>
+            <div class="slot"></div>
+          </div>
+          <div class="seqlabel" id="seqLabel" data-i18n="board.hint.chain">Напиши руны — они соберутся в цепочку</div>
+        </div>
+        <div class="padbox">
+          <div class="hintlabel" id="hintLabel" data-i18n="board.hint_contour">Подсказка: контур</div>
+          <canvas id="pad" width="1024" height="1024"></canvas>
+        </div>
+        <div class="feedback" id="feedback" data-i18n="board.hint.rune">Нарисуй иероглиф — он станет руной заклинания</div>
+        <div class="controls">
+          <button id="demoBtn" data-i18n="board.order" data-i18n-title="top.order_hint" title="Показать порядок штрихов (D)">▶ Порядок</button>
+          <button id="hintBtn" data-i18n="board.contour" data-i18n-title="top.contour_hint" title="Показать/скрыть контур (H)">👁 Контур</button>
+          <button id="undoBtn" data-i18n="board.undo" data-i18n-title="top.undo_hint" title="Отменить штрих (Z)">↩ Отменить</button>
+          <button id="clearBtn" data-i18n="board.clear" data-i18n-title="top.clear_hint" title="Очистить (C)">🗑 Очистить</button>
+        </div>
+        <div class="timerbar"><div class="timerfill" id="timerFill" style="background:linear-gradient(90deg,#57e0ff,#a86bff)"></div></div>
+      </section>
+
+      <!-- ВРАГ -->
+      <section class="side" id="enemyPanel">
+        <div class="bossbadge" id="bossBadge" data-i18n="enemy.boss">БОСС</div>
+        <h3 id="enemyTitle" data-i18n="enemy.foe">Противник</h3>
+        <div class="stagetag" id="enemyStage"></div>
+        <div class="avatar enemy char is-idle" id="enemyAvatar"></div>
+        <div class="hpwrap">
+          <div class="hptrack"><div class="hpfill" id="enemyHpFill" style="background:linear-gradient(90deg,#ff6b7a,#ff9d2e)"></div></div>
+          <div class="hplabel"><span id="enemyName">Призрак</span><span id="enemyHpText">70/70</span></div>
+        </div>
+        <div class="timerbar" style="margin-top:6px"><div class="timerfill" id="enemyTimer" style="background:linear-gradient(90deg,#ff6bd5,#ff9d2e)"></div>
+        <div class="hplabel"><span data-i18n="enemy.attack">Атака врага</span><span id="enemyTimerText"></span></div></div>
+      </section>
+    </main>
+
+    <!-- ИНВЕНТАРЬ -->
+    <div class="invwrap">
+      <h4><span data-i18n="inv.title">📜 Инвентарь рун</span> <span style="text-transform:none;font-weight:400;color:#7f92d8" data-i18n="inv.tip">(кликни, чтобы вызвать и написать снова)</span></h4>
+      <div class="inventory" id="inventory"></div>
+    </div>
+
+    <footer class="logline" id="logline"></footer>
+  </div>
+
+  <!-- ОВЕРЛЕЙ (старт / конец) -->
+  <div id="overlay">
+    <div class="card">
+      <div style="font-size:52px">🧙‍♂️⚡👹</div>
+      <h1 data-i18n="app.title">Маг Иероглифов</h1>
+      <div class="sub" data-i18n="app.subtitle">Тренажёр китайских иероглифов в виде игры</div>
+      <ul class="rules" id="rulesList">
+        <li>🖊 Напиши иероглиф — он станет <b>руной</b> заклинания.</li>
+        <li>⚔ <b>Обычная атака</b> — 1 руна, проще, но урон обычный.</li>
+        <li>🔗 <b>Комбо</b> — 2–3 руны одним словом, труднее, но урон в разы больше.</li>
+        <li>🎯 <b>Точнее</b> и <b>быстрее</b> пишешь — тем сильнее удар.</li>
+        <li>👹 Каждый 10-й враг — <b>БОСС</b>: у него броня, и без комбо его не одолеть.</li>
+        <li>📚 Материал игры — <b>500 самых частых иероглифов</b>; выученные руны копятся в инвентаре.</li>
+        <li>⏸ Пауза — ⏸ или Esc. Музыка и звук — кнопки в шапке.</li>
+      </ul>
+      <div class="scorefinal" id="overlayScore"></div>
+      <button class="primary bigbtn" id="startBtn" data-i18n="btn.start">▶ Начать бой</button>
+      <div class="keyhint" data-i18n="keys.hint">Клавиши: 1 — обычная атака, 2 — комбо, D — порядок, H — контур, Z — отменить, C — очистить, Esc — пауза</div>
+    </div>
+  </div>
+
+  <!-- ПАУЗА -->
+  <div id="pauseOverlay" class="hidden">
+    <div class="card">
+      <div class="pausetitle">⏸</div>
+      <h1 data-i18n="pause.title">Пауза</h1>
+      <div class="sub" data-i18n="pause.text">Игра остановлена. Твой прогресс сохранён.</div>
+      <button class="primary bigbtn" id="resumeBtn" data-i18n="btn.resume">▶ Продолжить</button>
+      <div class="keyhint" data-i18n="pause.resume_hint">Esc или P — продолжить</div>
+    </div>
+  </div>
+
+    <!-- ==== ШАБЛОНЫ ПЕРСОНАЖЕЙ (SVG) ==== -->
+  <template id="tpl-ghost">
+    <svg viewBox="0 0 200 232" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="100" cy="218" rx="44" ry="10" fill="rgba(0,0,0,.28)"/>
+      <g class="c-body">
+        <g class="c-wisp">
+          <path d="M100 20 C 62 20 44 50 44 90 L 44 172 c 0 10 -10 8 -10 18 c 8 -2 14 -8 20 -8 c 8 0 10 10 20 10 c 10 0 12 -12 24 -12 c 12 0 14 12 24 12 c 10 0 12 -10 20 -10 c 6 0 12 6 20 8 c 0 -10 -10 -8 -10 -18 L 156 90 C 156 50 138 20 100 20 Z" fill="#d6f2ff" stroke="#2a3b6b" stroke-width="4"/>
+          <g class="c-head">
+            <ellipse cx="80" cy="84" rx="13" ry="16" fill="#1d2748"/>
+            <ellipse cx="120" cy="84" rx="13" ry="16" fill="#1d2748"/>
+            <circle cx="84" cy="80" r="4" fill="#9be8ff"/>
+            <circle cx="124" cy="80" r="4" fill="#9be8ff"/>
+            <path class="c-mouth" d="M84 122 q16 22 32 0 q-16 9 -32 0 Z" fill="#1d2748"/>
+            <path d="M62 58 q18 -12 36 -4" fill="none" stroke="#2a3b6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M138 58 q-18 -12 -36 -4" fill="none" stroke="#2a3b6b" stroke-width="4" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="c-crown"><path d="M74 30 l8 -18 9 12 9 -16 9 16 9 -12 8 18 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-bat">
+    <svg viewBox="0 0 220 206" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="110" cy="190" rx="38" ry="9" fill="rgba(0,0,0,.28)"/>
+      <g class="c-body">
+        <g class="c-wing-l"><path d="M104 92 C 74 60 40 58 14 74 C 34 78 44 88 40 100 C 58 96 68 104 70 116 C 84 106 96 106 104 112 Z" fill="#7a52c8" stroke="#2a1b52" stroke-width="4"/></g>
+        <g class="c-wing-r"><path d="M116 92 C 146 60 180 58 206 74 C 186 78 176 88 180 100 C 162 96 152 104 150 116 C 136 106 124 106 116 112 Z" fill="#7a52c8" stroke="#2a1b52" stroke-width="4"/></g>
+        <g class="c-leg-l"><path d="M96 150 q-8 18 2 30" fill="none" stroke="#2a1b52" stroke-width="7" stroke-linecap="round"/></g>
+        <g class="c-leg-r"><path d="M124 150 q8 18 -2 30" fill="none" stroke="#2a1b52" stroke-width="7" stroke-linecap="round"/></g>
+        <ellipse cx="110" cy="128" rx="26" ry="30" fill="#6a4bb8" stroke="#2a1b52" stroke-width="4"/>
+        <g class="c-head">
+          <path d="M92 42 l-8 -26 20 14 z" fill="#5a3ba0" stroke="#2a1b52" stroke-width="4"/>
+          <path d="M128 42 l8 -26 -20 14 z" fill="#5a3ba0" stroke="#2a1b52" stroke-width="4"/>
+          <ellipse cx="110" cy="74" rx="32" ry="30" fill="#6a4bb8" stroke="#2a1b52" stroke-width="4"/>
+          <ellipse cx="98" cy="72" rx="7" ry="8" fill="#ffd166"/><circle cx="98" cy="72" r="3" fill="#2a1b52"/>
+          <ellipse cx="122" cy="72" rx="7" ry="8" fill="#ffd166"/><circle cx="122" cy="72" r="3" fill="#2a1b52"/>
+          <path class="c-mouth" d="M98 90 q12 12 24 0 z" fill="#2a1b52"/>
+          <path d="M100 90 l3 8 3 -8 z" fill="#fff"/><path d="M114 90 l3 8 3 -8 z" fill="#fff"/>
+        </g>
+        <g class="c-crown"><path d="M86 46 l7 -16 8 11 8 -15 8 15 8 -11 7 16 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-ogre">
+    <svg viewBox="0 0 210 250" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="105" cy="238" rx="56" ry="12" fill="rgba(0,0,0,.3)"/>
+      <g class="c-body">
+        <g class="c-leg-l"><rect x="72" y="182" width="26" height="44" rx="10" fill="#4f8a33" stroke="#1e3d16" stroke-width="4"/><ellipse cx="85" cy="228" rx="20" ry="11" fill="#3a2a1a" stroke="#1e3d16" stroke-width="4"/></g>
+        <g class="c-leg-r"><rect x="112" y="182" width="26" height="44" rx="10" fill="#4f8a33" stroke="#1e3d16" stroke-width="4"/><ellipse cx="125" cy="228" rx="20" ry="11" fill="#3a2a1a" stroke="#1e3d16" stroke-width="4"/></g>
+        <path d="M105 96 C 66 96 52 130 50 178 C 49 198 70 206 105 206 C 140 206 161 198 160 178 C 158 130 144 96 105 96 Z" fill="#7ec850" stroke="#1e3d16" stroke-width="5"/>
+        <ellipse cx="105" cy="162" rx="34" ry="32" fill="#b7e08a" stroke="#1e3d16" stroke-width="4"/>
+        <g class="c-arm-l">
+          <path d="M74 112 C 52 124 44 146 42 166" fill="none" stroke="#1e3d16" stroke-width="26" stroke-linecap="round"/>
+          <path d="M74 112 C 52 124 44 146 42 166" fill="none" stroke="#7ec850" stroke-width="18" stroke-linecap="round"/>
+          <g class="c-club">
+            <rect x="30" y="52" width="16" height="112" rx="7" fill="#8a5a2b" stroke="#1e3d16" stroke-width="4"/>
+            <ellipse cx="38" cy="54" rx="24" ry="22" fill="#6b4520" stroke="#1e3d16" stroke-width="4"/>
+          </g>
+        </g>
+        <g class="c-arm-r">
+          <path d="M136 112 C 158 124 166 144 168 162" fill="none" stroke="#1e3d16" stroke-width="26" stroke-linecap="round"/>
+          <path d="M136 112 C 158 124 166 144 168 162" fill="none" stroke="#7ec850" stroke-width="18" stroke-linecap="round"/>
+          <circle cx="168" cy="166" r="13" fill="#7ec850" stroke="#1e3d16" stroke-width="4"/>
+        </g>
+        <g class="c-head">
+          <ellipse cx="105" cy="66" rx="40" ry="36" fill="#7ec850" stroke="#1e3d16" stroke-width="5"/>
+          <path d="M65 44 q20 -14 40 -2" fill="none" stroke="#1e3d16" stroke-width="6" stroke-linecap="round"/>
+          <path d="M145 44 q-20 -14 -40 -2" fill="none" stroke="#1e3d16" stroke-width="6" stroke-linecap="round"/>
+          <ellipse cx="88" cy="62" rx="8" ry="9" fill="#fff" stroke="#1e3d16" stroke-width="3"/><circle cx="89" cy="63" r="3.5" fill="#1e3d16"/>
+          <ellipse cx="122" cy="62" rx="8" ry="9" fill="#fff" stroke="#1e3d16" stroke-width="3"/><circle cx="123" cy="63" r="3.5" fill="#1e3d16"/>
+          <ellipse cx="105" cy="78" rx="10" ry="7" fill="#5f9e3c" stroke="#1e3d16" stroke-width="3"/>
+          <path class="c-mouth" d="M80 86 q25 24 50 0 q-25 11 -50 0 Z" fill="#5a1020" stroke="#1e3d16" stroke-width="3"/>
+          <path d="M84 88 l5 13 5 -11 z" fill="#fff"/><path d="M126 88 l-5 13 -5 -11 z" fill="#fff"/>
+        </g>
+        <g class="c-crown"><path d="M74 26 l9 -20 10 14 11 -18 11 18 10 -14 9 20 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-demon">
+    <svg viewBox="0 0 220 250" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="110" cy="238" rx="52" ry="11" fill="rgba(0,0,0,.3)"/>
+      <g class="c-body">
+        <g class="c-tail"><path d="M112 190 q42 6 44 -30 q-2 26 -20 30 q14 4 12 18 q-4 -14 -18 -14 z" fill="#b83f2c" stroke="#4a1408" stroke-width="4"/></g>
+        <g class="c-wing-l"><path d="M96 108 C 66 76 34 74 12 92 C 34 94 44 104 42 118 C 60 112 72 120 74 132 Z" fill="#8e2e1e" stroke="#4a1408" stroke-width="4"/></g>
+        <g class="c-wing-r"><path d="M124 108 C 154 76 186 74 208 92 C 186 94 176 104 178 118 C 160 112 148 120 146 132 Z" fill="#8e2e1e" stroke="#4a1408" stroke-width="4"/></g>
+        <g class="c-leg-l"><rect x="86" y="184" width="20" height="42" rx="9" fill="#c34a33" stroke="#4a1408" stroke-width="4"/><path d="M84 226 h26 l-4 13 h-18 z" fill="#8e2e1e" stroke="#4a1408" stroke-width="3"/></g>
+        <g class="c-leg-r"><rect x="114" y="184" width="20" height="42" rx="9" fill="#c34a33" stroke="#4a1408" stroke-width="4"/><path d="M112 226 h26 l-4 13 h-18 z" fill="#8e2e1e" stroke="#4a1408" stroke-width="3"/></g>
+        <path d="M110 100 C 78 100 66 130 64 180 C 63 198 82 206 110 206 C 138 206 157 198 156 180 C 154 130 142 100 110 100 Z" fill="#e0553f" stroke="#4a1408" stroke-width="5"/>
+        <ellipse cx="110" cy="152" rx="26" ry="30" fill="#f08a6a" stroke="#4a1408" stroke-width="4"/>
+        <g class="c-arm-l">
+          <path d="M84 116 C 64 128 56 148 56 166" fill="none" stroke="#4a1408" stroke-width="22" stroke-linecap="round"/>
+          <path d="M84 116 C 64 128 56 148 56 166" fill="none" stroke="#e0553f" stroke-width="15" stroke-linecap="round"/>
+          <g class="c-club">
+            <rect x="52" y="46" width="9" height="126" rx="4" fill="#8a5a2b" stroke="#4a1408" stroke-width="4"/>
+            <path d="M56 46 l-16 -12 8 -10 8 8 8 -14 8 14 8 -8 8 10 -16 12 z" fill="#ffd166" stroke="#4a1408" stroke-width="3"/>
+          </g>
+        </g>
+        <g class="c-arm-r">
+          <path d="M136 116 C 156 130 162 148 162 166" fill="none" stroke="#4a1408" stroke-width="22" stroke-linecap="round"/>
+          <path d="M136 116 C 156 130 162 148 162 166" fill="none" stroke="#e0553f" stroke-width="15" stroke-linecap="round"/>
+          <circle cx="162" cy="170" r="12" fill="#e0553f" stroke="#4a1408" stroke-width="4"/>
+        </g>
+        <g class="c-head">
+          <ellipse cx="110" cy="68" rx="36" ry="33" fill="#e0553f" stroke="#4a1408" stroke-width="5"/>
+          <path d="M78 44 C 66 20 62 8 60 2 C 74 10 86 22 92 38 Z" fill="#f0e0d0" stroke="#4a1408" stroke-width="4"/>
+          <path d="M142 44 C 154 20 158 8 160 2 C 146 10 134 22 128 38 Z" fill="#f0e0d0" stroke="#4a1408" stroke-width="4"/>
+          <path d="M82 56 q12 -10 24 -4" fill="none" stroke="#4a1408" stroke-width="5" stroke-linecap="round"/>
+          <path d="M138 56 q-12 -10 -24 -4" fill="none" stroke="#4a1408" stroke-width="5" stroke-linecap="round"/>
+          <ellipse cx="96" cy="68" rx="9" ry="10" fill="#ffd166" stroke="#4a1408" stroke-width="3"/><ellipse cx="96" cy="68" rx="3" ry="7" fill="#4a1408"/>
+          <ellipse cx="124" cy="68" rx="9" ry="10" fill="#ffd166" stroke="#4a1408" stroke-width="3"/><ellipse cx="124" cy="68" rx="3" ry="7" fill="#4a1408"/>
+          <path class="c-mouth" d="M88 86 q22 24 44 0 q-22 9 -44 0 Z" fill="#3a0a06" stroke="#4a1408" stroke-width="3"/>
+          <path d="M92 88 l4 12 5 -10 z" fill="#fff"/><path d="M128 88 l-4 12 -5 -10 z" fill="#fff"/>
+        </g>
+        <g class="c-crown"><path d="M82 30 l8 -20 10 13 10 -18 10 18 10 -13 8 20 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-dragon">
+    <svg viewBox="0 0 230 250" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="115" cy="238" rx="56" ry="11" fill="rgba(0,0,0,.3)"/>
+      <g class="c-body">
+        <g class="c-tail"><path d="M118 196 q50 4 52 -34 q-4 30 -22 34 q16 4 14 20 q-6 -16 -20 -16 z" fill="#2f9e68" stroke="#12402a" stroke-width="4"/></g>
+        <g class="c-wing-l"><path d="M100 110 C 68 74 30 70 8 88 C 32 92 42 102 40 118 C 60 112 74 120 76 134 Z" fill="#2f9e68" stroke="#12402a" stroke-width="4"/><path d="M40 96 l-12 22 M58 104 l-9 26" stroke="#12402a" stroke-width="3" fill="none"/></g>
+        <g class="c-wing-r"><path d="M130 110 C 162 74 200 70 222 88 C 198 92 188 102 190 118 C 170 112 156 120 154 134 Z" fill="#2f9e68" stroke="#12402a" stroke-width="4"/><path d="M190 96 l12 22 M172 104 l9 26" stroke="#12402a" stroke-width="3" fill="none"/></g>
+        <g class="c-leg-l"><rect x="90" y="186" width="22" height="42" rx="9" fill="#3fb87a" stroke="#12402a" stroke-width="4"/><path d="M86 226 h30 l-4 13 h-22 z" fill="#2f9e68" stroke="#12402a" stroke-width="3"/></g>
+        <g class="c-leg-r"><rect x="118" y="186" width="22" height="42" rx="9" fill="#3fb87a" stroke="#12402a" stroke-width="4"/><path d="M114 226 h30 l-4 13 h-22 z" fill="#2f9e68" stroke="#12402a" stroke-width="3"/></g>
+        <path d="M115 104 C 80 104 68 132 66 182 C 65 200 84 208 115 208 C 146 208 165 200 164 182 C 162 132 150 104 115 104 Z" fill="#4bd18a" stroke="#12402a" stroke-width="5"/>
+        <ellipse cx="115" cy="158" rx="28" ry="30" fill="#bff0d0" stroke="#12402a" stroke-width="4"/>
+        <g class="c-arm-l">
+          <path d="M88 120 C 66 132 58 150 58 168" fill="none" stroke="#12402a" stroke-width="22" stroke-linecap="round"/>
+          <path d="M88 120 C 66 132 58 150 58 168" fill="none" stroke="#4bd18a" stroke-width="15" stroke-linecap="round"/>
+          <path d="M50 168 l-8 14 M58 172 l-4 16 M66 172 l2 16" stroke="#12402a" stroke-width="5" stroke-linecap="round" fill="none"/>
+        </g>
+        <g class="c-arm-r">
+          <path d="M142 120 C 164 132 172 150 172 168" fill="none" stroke="#12402a" stroke-width="22" stroke-linecap="round"/>
+          <path d="M142 120 C 164 132 172 150 172 168" fill="none" stroke="#4bd18a" stroke-width="15" stroke-linecap="round"/>
+          <path d="M180 168 l8 14 M172 172 l4 16 M164 172 l-2 16" stroke="#12402a" stroke-width="5" stroke-linecap="round" fill="none"/>
+        </g>
+        <g class="c-head">
+          <path d="M70 42 C 56 18 52 6 50 0 C 66 10 80 24 86 42 Z" fill="#f0e0d0" stroke="#12402a" stroke-width="4"/>
+          <path d="M160 42 C 174 18 178 6 180 0 C 164 10 150 24 144 42 Z" fill="#f0e0d0" stroke="#12402a" stroke-width="4"/>
+          <ellipse cx="115" cy="72" rx="42" ry="36" fill="#4bd18a" stroke="#12402a" stroke-width="5"/>
+          <path d="M120 84 q26 4 36 18 q-14 14 -38 8 z" fill="#3fb87a" stroke="#12402a" stroke-width="4"/>
+          <circle cx="96" cy="66" r="10" fill="#ffd166" stroke="#12402a" stroke-width="3"/><ellipse cx="96" cy="66" rx="3.5" ry="8" fill="#12402a"/>
+          <circle cx="134" cy="66" r="10" fill="#ffd166" stroke="#12402a" stroke-width="3"/><ellipse cx="134" cy="66" rx="3.5" ry="8" fill="#12402a"/>
+          <path d="M84 48 q14 -12 30 -6" fill="none" stroke="#12402a" stroke-width="5" stroke-linecap="round"/>
+          <path d="M146 48 q-14 -12 -30 -6" fill="none" stroke="#12402a" stroke-width="5" stroke-linecap="round"/>
+          <path class="c-mouth" d="M96 92 q20 18 40 2" fill="none" stroke="#12402a" stroke-width="4" stroke-linecap="round"/>
+          <path d="M104 96 l4 10 5 -8 z" fill="#fff"/><path d="M126 98 l-4 10 -5 -8 z" fill="#fff"/>
+          <circle cx="146" cy="100" r="3" fill="#12402a"/>
+        </g>
+        <g class="c-crown"><path d="M84 32 l9 -20 10 14 11 -18 11 18 10 -14 9 20 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <template id="tpl-darklord">
+    <svg viewBox="0 0 210 250" class="charSvg" aria-hidden="true">
+      <ellipse class="c-shadow" cx="105" cy="238" rx="52" ry="11" fill="rgba(0,0,0,.35)"/>
+      <g class="c-body">
+        <path d="M105 82 C 70 82 48 118 42 196 C 40 210 60 218 105 218 C 150 218 170 210 168 196 C 162 118 140 82 105 82 Z" fill="#2a2450" stroke="#0d0a1e" stroke-width="5"/>
+        <path d="M105 96 C 88 96 78 120 74 198 C 74 206 86 212 105 212 C 124 212 136 206 136 198 C 132 120 122 96 105 96 Z" fill="#3a3370" stroke="#0d0a1e" stroke-width="3"/>
+        <g class="c-arm-l">
+          <path d="M78 112 C 62 126 56 142 56 158" fill="none" stroke="#0d0a1e" stroke-width="22" stroke-linecap="round"/>
+          <path d="M78 112 C 62 126 56 142 56 158" fill="none" stroke="#2a2450" stroke-width="15" stroke-linecap="round"/>
+          <g class="c-club">
+            <rect x="52" y="40" width="9" height="126" rx="4" fill="#3a2a20" stroke="#0d0a1e" stroke-width="4"/>
+            <circle cx="56" cy="34" r="26" fill="#ff4d5e" opacity=".28"/>
+            <circle cx="56" cy="34" r="16" fill="#ff4d5e" stroke="#0d0a1e" stroke-width="4"/>
+          </g>
+        </g>
+        <g class="c-arm-r">
+          <path d="M132 112 C 148 126 154 142 154 158" fill="none" stroke="#0d0a1e" stroke-width="22" stroke-linecap="round"/>
+          <path d="M132 112 C 148 126 154 142 154 158" fill="none" stroke="#2a2450" stroke-width="15" stroke-linecap="round"/>
+          <path d="M144 158 q10 8 4 18 q-10 -2 -12 -12 z" fill="#8e2e1e" stroke="#0d0a1e" stroke-width="3"/>
+        </g>
+        <g class="c-head">
+          <path d="M105 20 C 70 20 58 52 58 78 C 58 96 74 106 105 106 C 136 106 152 96 152 78 C 152 52 140 20 105 20 Z" fill="#2a2450" stroke="#0d0a1e" stroke-width="5"/>
+          <path d="M105 34 C 82 34 74 56 74 80 C 74 92 86 98 105 98 C 124 98 136 92 136 80 C 136 56 128 34 105 34 Z" fill="#100c22"/>
+          <ellipse cx="92" cy="74" rx="7" ry="5" fill="#ff5b6b"/>
+          <ellipse cx="118" cy="74" rx="7" ry="5" fill="#ff5b6b"/>
+          <path class="c-mouth" d="M96 90 q9 8 18 0" fill="none" stroke="#ff5b6b" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g class="c-crown"><path d="M76 22 l9 -20 10 14 10 -18 10 18 10 -14 9 20 z" fill="#ffd166" stroke="#8a5a00" stroke-width="3"/></g>
+      </g>
+    </svg>
+  </template>
+
+  <script src="../hanzi-data.js"></script>
+<script src="../hanzi-gloss-zh.js"></script>
+<script src="../i18n.js"></script>
+<script src="enemies-anime.js"></script>
+<script src="enemies-anime-i18n.js"></script>
+  <script>
+  "use strict";
+  /* ================= ДАННЫЕ ИГРЫ ================= */
+  // Материал игры: 500 самых частых иероглифов (штрихи — в hanzi-data.js).
+  // Элемент: {ch, py — пиньинь, ru — значение, en — англ. подсказка, s — число штрихов}
+  const FALLBACK_CHARS = [
+    {ch:"一",py:"yī",ru:"один",en:"one",s:1},
+    {ch:"二",py:"èr",ru:"два",en:"two",s:2},
+    {ch:"十",py:"shí",ru:"десять",en:"ten",s:2},
+    {ch:"人",py:"rén",ru:"человек",en:"man",s:2},
+    {ch:"三",py:"sān",ru:"три",en:"three",s:3},
+    {ch:"口",py:"kǒu",ru:"рот",en:"mouth",s:3},
+    {ch:"山",py:"shān",ru:"гора",en:"mountain",s:3},
+    {ch:"大",py:"dà",ru:"большой",en:"big",s:3},
+    {ch:"上",py:"shàng",ru:"вверх",en:"up",s:3},
+    {ch:"天",py:"tiān",ru:"небо",en:"sky",s:4},
+    {ch:"木",py:"mù",ru:"дерево",en:"tree",s:4},
+    {ch:"水",py:"shuǐ",ru:"вода",en:"water",s:4},
+    {ch:"火",py:"huǒ",ru:"огонь",en:"fire",s:4},
+    {ch:"日",py:"rì",ru:"солнце",en:"sun",s:4},
+    {ch:"月",py:"yuè",ru:"луна",en:"moon",s:4},
+    {ch:"中",py:"zhōng",ru:"середина",en:"middle",s:4},
+    {ch:"心",py:"xīn",ru:"сердце",en:"heart",s:4},
+    {ch:"手",py:"shǒu",ru:"рука",en:"hand",s:4},
+    {ch:"白",py:"bái",ru:"белый",en:"white",s:5},
+    {ch:"目",py:"mù",ru:"глаз",en:"eye",s:5},
+    {ch:"电",py:"diàn",ru:"электричество",en:"electricity",s:5},
+    {ch:"马",py:"mǎ",ru:"лошадь",en:"horse",s:3},
+    {ch:"风",py:"fēng",ru:"ветер",en:"wind",s:4},
+    {ch:"米",py:"mǐ",ru:"рис",en:"rice",s:6},
+    {ch:"花",py:"huā",ru:"цветок",en:"flower",s:7},
+    {ch:"雨",py:"yǔ",ru:"дождь",en:"rain",s:8},
+    {ch:"学",py:"xué",ru:"учёба",en:"study",s:8},
+  ];
+
+  const CHARACTERS = (function(){
+    const info = window.HANZI_INFO;
+    if(info){
+      const keys = Object.keys(info);
+      if(keys.length){
+        return keys.map(function(ch){
+          const v = info[ch] || [];
+          return { ch:ch, py:v[0]||"", ru:v[1]||"", en:v[2]||"", zh:v[4]||"", s:v[3]||0 };
+        });
+      }
+    }
+    return FALLBACK_CHARS;
+  })();
+  const CHAR_BY_CH = {};
+  CHARACTERS.forEach(function(c){ CHAR_BY_CH[c.ch] = c; });
+
+  /* ================= ПРОТИВНИКИ (аниме-версия) =================
+     Списки приходят из enemies-anime.js (30 врагов, 7 боссов).
+     Босс — каждый 10-й ход. Обычный враг идёт по кругу из 30.
+     Если внешний файл не загрузился, работает прежний набор из 6 —
+     игра остаётся играбельной, просто без нового арта. */
+  const FALLBACK_ENEMIES = [
+    {art:"ghost",    name:"Призрак",   hp:70,  atk:13, atkTime:11.0, color:"#9be8ff"},
+    {art:"bat",      name:"Лет. мышь", hp:85,  atk:15, atkTime:10.0, color:"#c8a2ff"},
+    {art:"ogre",     name:"Огр",       hp:110, atk:18, atkTime:9.2,  color:"#ff8b8b"},
+    {art:"demon",    name:"Демон",     hp:140, atk:20, atkTime:8.6,  color:"#ffb86b"},
+    {art:"dragon",   name:"Дракон",    hp:180, atk:24, atkTime:8.0,  color:"#7dffb0"},
+    {art:"darklord", name:"Владыка",   hp:230, atk:28, atkTime:7.4,  color:"#ff6bd5"}
+  ];
+  const ANIME_ON = !!(window.ANIME_ENEMIES && window.ANIME_ENEMIES.length &&
+                      window.ANIME_BOSSES  && window.ANIME_BOSSES.length);
+  const ENEMIES = ANIME_ON ? window.ANIME_ENEMIES : FALLBACK_ENEMIES;
+  const BOSSES  = ANIME_ON ? window.ANIME_BOSSES  : FALLBACK_ENEMIES.slice(-3);
+  /* Стадия облика: каждые 10 ходов враг «растёт» визуально (1..4). */
+  function enemyStage(){ return window.animeStageFor ? window.animeStageFor(round) : 1; }
+  /* Страховка: стадия обязана быть целым 1..4, иначе арт получит мусор. */
+  function stageSafe(v){
+    v = Math.round(Number(v));
+    if(!isFinite(v) || v < 1) v = 1;
+    if(v > 4) v = 4;
+    return v;
+  }
+
+  // Комбинации: слово из 2–3 рун -> русское название и множитель урона.
+  // Оставляем только те, все иероглифы которых есть в игровом материале.
+  const COMBO_WORDS = [
+    ["不是","не есть",2.6],["不在","отсутствовать",2.6],["一人","один человек",2.6],
+    ["一个","один (штука)",2.6],["我的","мой",2.6],["你的","твой",2.6],
+    ["他们","они",2.8],["大家","все",2.8],["有人","кто-то",2.6],
+    ["中国","Китай",3.2],["中文","китайский язык",2.8],["美国","США",3.2],
+    ["大人","взрослый",2.6],["人口","население",2.6],["人们","люди",2.6],
+    ["火山","вулкан",3.6],["山火","лесной пожар",3.4],["大火","большой пожар",3.0],
+    ["大水","наводнение",3.0],["水手","моряк",3.0],["木马","деревянный конь",3.0],
+    ["中心","центр",2.6],["手心","ладонь",2.6],["日月","солнце и луна",3.6],
+    ["天上","небеса",3.0],["火花","искра",3.2],["水电","гидроэнергия",3.0],
+    ["大风","сильный ветер",2.6],["大米","рис",2.4],["白马","белый конь",2.6],
+    ["大学","университет",3.2],["时间","время",3.6],["学生","ученик",3.2],
+    ["电影","кино",3.2],["电话","телефон",3.2],["工作","работа",3.2],
+    ["问题","вопрос",3.2],["地方","место",2.8],["生活","жизнь",3.2],
+    ["世界","мир",3.4],["水果","фрукты",3.2],["火车","поезд",3.2],
+    ["飞机","самолёт",3.2],["一点","немного",2.6],["一起","вместе",3.2],
+    ["一样","одинаково",2.8],["一半","половина",2.8],["不同","различный",2.8],
+    ["什么","что",3.0],["这个","это",2.6],["那个","то",2.6],
+    ["怎么","как",3.0],["现在","сейчас",3.2],["可以","можно",3.0],
+    ["因为","потому что",3.4],["所以","поэтому",3.4],["但是","но",3.0],
+    ["没有","нет",2.6],["知道","знать",3.2],["觉得","чувствовать",3.2],
+    ["时候","момент",3.2],["东西","вещь",3.0],["儿子","сын",2.8],
+    ["女儿","дочь",3.0],["孩子","ребёнок",3.2],["身体","тело",3.2],
+    ["医生","врач",3.2],["老师","учитель",3.2],["同学","однокурсник",3.0],
+    ["北京","Пекин",3.4],["上海","Шанхай",3.2],["早上","утро",2.8],
+    ["晚上","вечер",2.8],["今天","сегодня",3.2],["明天","завтра",3.2],
+    ["昨天","вчера",3.2],["今年","этот год",2.8],["去年","прошлый год",2.8],
+    ["小时","час",2.8],["分钟","минута",2.8],["天气","погода",3.2],
+    ["下雨","идёт дождь",3.2],["国家","страна",3.4],["政府","власть",3.0],
+    ["经济","экономика",3.4],["文化","культура",3.2],["科学","наука",3.2],
+    ["历史","история",3.2],["社会","общество",3.2],["学校","школа",3.2],
+    ["房子","дом",2.8],["大门","ворота",2.6],["力量","сила",3.0],
+    ["男人","мужчина",3.0],["女人","женщина",3.0],["快乐","радость",3.0],
+    ["高兴","радостный",3.0],["好看","красивый",3.0],["山水","пейзаж",3.0],
+    ["心情","настроение",3.2],["中国话","китайская речь",5.0],
+    ["中国人","китаец",6.0],["大学生","студент",5.6],["火山口","кратер вулкана",6.4],
+    ["大火山","великий вулкан",7.5],["工作日","рабочий день",5.2]
+  ];
+  const COMBOS = COMBO_WORDS
+    .filter(function(w){ return [...w[0]].every(function(ch){ return !!CHAR_BY_CH[ch]; }); })
+    .map(function(w){ return { w:w[0], name:w[1], mult:w[2], len:[...w[0]].length }; });
+
+  /* ================= СОСТОЯНИЕ ================= */
+  const pad = document.getElementById("pad");
+  const ctx = pad.getContext("2d");
+  const GRID = 1024;
+  const BOSS_ARMOR = 0.25;   // во сколько раз слабее одиночные атаки по боссу
+
+  /* ================= ПРИВЕДЕНИЕ ШТРИХОВ К ПОЛЮ РИСОВАНИЯ =================
+     В hanzi-data.js штрихи лежат в координатах, где ось Y направлена ВВЕРХ
+     (математическая система), а canvas рисует Y ВНИЗ. Из-за этого все
+     иероглифы выходили на доске перевёрнутыми по вертикали: 八 выглядела как
+     «Λ» (рожки вверх), у 上 длинная черта оказывалась сверху — то есть
+     получался 下, у 了 форма не совпадала с оригиналом.
+
+     Проверка исходных данных это подтверждает:
+       - «центр массы» по Y выше середины у 499 из 500 знаков;
+       - первая черта начинается в нижней половине у 469 из 500
+         (пишут же сверху вниз);
+       - у 上/王/正/里/五/亚 самая длинная горизонталь лежит вверху,
+         хотя должна быть внизу.
+
+     Поэтому: (1) отражаем Y, (2) вписываем знак в квадрат FIELD_SIDE по
+     центру поля, сохраняя пропорции, чтобы начертание совпало с оригиналом
+     и не обрезалось.
+     Блок стоит ПОСЛЕ объявления GRID: обращение к нему раньше дало бы
+     ReferenceError (временная мёртвая зона let/const). */
+  const FIELD_SIDE = 800;                     // сторона, которую занимает иероглиф
+  function normalizeStrokes(strokes){
+    if(!strokes || !strokes.length) return strokes || [];
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    for(const s of strokes) for(const p of s){
+      if(p[0]<minX) minX=p[0]; if(p[0]>maxX) maxX=p[0];
+      if(p[1]<minY) minY=p[1]; if(p[1]>maxY) maxY=p[1];
+    }
+    const w=maxX-minX, h=maxY-minY, side=Math.max(w,h);
+    if(!(side>0)) return strokes.map(function(s){ return s.map(function(){ return [GRID/2,GRID/2]; }); });
+    const k=FIELD_SIDE/side, cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+    return strokes.map(function(s){
+      return s.map(function(p){
+        return [
+          Math.round((p[0]-cx)*k + GRID/2),
+          /* Отражаем Y: (minY+maxY) - y переворачивает знак относительно его
+             собственного центра, после чего сдвиг на GRID/2 ставит его в центр. */
+          Math.round(((minY+maxY) - p[1] - cy)*k + GRID/2)
+        ];
+      });
+    });
+  }
+  /* Нормируем один раз при загрузке: дальше все обращения к штрихам идут через
+     strokesOf(), поэтому доска, подсказка, демо и оценка работают в одной и
+     той же системе координат и сравниваются с исходным начертанием. */
+  const STROKES = Object.create(null);
+  (function(){
+    const src = (typeof window!=="undefined" && window.HANZI_DATA) || {};
+    for(const ch of Object.keys(src)) STROKES[ch] = normalizeStrokes(src[ch]);
+  })();
+  function strokesOf(ch){
+    if(STROKES[ch]) return STROKES[ch];
+    const raw = window.HANZI_DATA && window.HANZI_DATA[ch];
+    return raw ? normalizeStrokes(raw) : [];
+  }
+
+  let muted = false;
+  let running = false;
+  let resolving = false;
+  let paused = false, pausedAt = 0, pauseAccum = 0;
+  let autoPending = false;   // заклинание выпускается по таймеру; флаг позволяет отменить отложенный выпуск
+  let activePointer = null;  // id указателя, которым сейчас ведётся штрих
+
+  let round = 0;          // номер боя (0-based)
+  let score = 0;
+  let streak = 0;
+  let mageHp = 100, mageHpMax = 100;
+  let mana = 100;
+
+  let targetChar = null;   // текущая руна для написания {ch,py,ru}
+  let curEnemy, refStrokes;
+  let inventory = new Set();  // выученные руны (каждая показывается один раз)
+  let plan = [];           // руны выбранной атаки, по порядку
+  let written = [];        // [{ch, acc}] — уже написанные руны плана
+  let attackMode = "single";
+  let comboOffer = null;   // предложенная комбинация {w,name,mult,len}
+  let singleRune = null;   // руна для обычной атаки
+  let planStart = 0;       // начало отсчёта времени атаки
+  let drawn = [];          // [{pts:[[gx,gy],...], quality:0..1|null}]
+  let current = null;      // текущий рисуемый штрих (pts)
+  let clockStart = 0;      // таймер раунда
+  let hintOn = true;
+  let enemyAtkLeft, enemyAtkMax;
+  let lastNow = 0;
+
+  /* ================= УТИЛИТЫ ================= */
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const $ = id=>document.getElementById(id);
+
+  function bboxOf(pts){
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for(const p of pts){ minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]); }
+    return {minX,minY,maxX,maxY};
+  }
+  function unionBB(strokes){
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity, any=false;
+    for(const s of strokes) for(const p of s){
+      any=true;
+      minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]);
+    }
+    if(!any) return {minX:0,minY:0,maxX:1,maxY:1};
+    return {minX,minY,maxX,maxY};
+  }
+  function centroid(pts){
+    if(!pts.length) return [0,0];   // иначе 0/0 -> NaN и порча positionScore
+    let x=0,y=0; for(const p of pts){x+=p[0];y+=p[1];}
+    return [x/pts.length, y/pts.length];
+  }
+  function resample(pts,n){
+    if(n<2) return pts.length ? [[pts[0][0],pts[0][1]]] : [[0,0]];
+    if(pts.length<2){
+      const p = pts[0]?[pts[0][0],pts[0][1]]:[0,0];
+      return Array.from({length:n},()=>[p[0],p[1]]);
+    }
+    const lens=[0];
+    for(let i=1;i<pts.length;i++) lens.push(lens[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+    const total=lens[lens.length-1]||1;
+    const out=[];
+    for(let k=0;k<n;k++){
+      const t=total*k/(n-1);
+      let i=0; while(i<lens.length-1 && lens[i+1]<t) i++;
+      const segLen=(lens[i+1]-lens[i])||1;
+      const f=(t-lens[i])/segLen;
+      const a=pts[i], b=pts[i+1]||a;
+      out.push([a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]);
+    }
+    return out;
+  }
+  function normalizeUnit(pts){
+    const bb=bboxOf(pts);
+    const w=bb.maxX-bb.minX, h=bb.maxY-bb.minY, s=Math.max(w,h);
+    const out=[];
+    if(s<1e-6){ for(const p of pts) out.push([0.5,0.5]); return out; }
+    const cx=(bb.minX+bb.maxX)/2, cy=(bb.minY+bb.maxY)/2;
+    for(const p of pts) out.push([(p[0]-cx)/s+0.5, (p[1]-cy)/s+0.5]);
+    return out;
+  }
+  function meanDist(A,B){
+    let s=0, n=Math.min(A.length,B.length);
+    if(!n) return 0;
+    for(let i=0;i<n;i++) s+=Math.hypot(A[i][0]-B[i][0],A[i][1]-B[i][1]);
+    return s/n;
+  }
+  function shapeScore(refPts, drawnPts){
+    const rb=bboxOf(refPts), db=bboxOf(drawnPts);
+    const rs=Math.max(rb.maxX-rb.minX, rb.maxY-rb.minY);
+    const ds=Math.max(db.maxX-db.minX, db.maxY-db.minY);
+    if(rs<25 && ds<25) return 1;   // обе — точки
+    if(rs<25 || ds<25) return 0;   // точка вместо штриха (или наоборот)
+    const r=resample(refPts,64), d=resample(drawnPts,64);
+    const rn=normalizeUnit(r), dn=normalizeUnit(d);
+    const dF=meanDist(rn,dn), dR=meanDist(rn,dn.slice().reverse());
+    return clamp(1 - Math.min(dF,dR)/0.30, 0, 1);
+  }
+  function normInBB(p,bb){
+    const w=bb.maxX-bb.minX, h=bb.maxY-bb.minY;
+    if(w<1e-6 && h<1e-6) return [0.5,0.5];
+    const nx = w>1e-6 ? (p[0]-bb.minX)/w : 0.5;
+    const ny = h>1e-6 ? (p[1]-bb.minY)/h : 0.5;
+    return [nx,ny];
+  }
+  function positionScore(refPts, drawnPts, refBB, drawnBB){
+    const rc=centroid(refPts), dc=centroid(drawnPts);
+    const rn=normInBB(rc,refBB), dn=normInBB(dc,drawnBB);
+    const d=Math.hypot(rn[0]-dn[0],rn[1]-dn[1]);
+    return clamp(1 - d/0.30, 0, 1);
+  }
+  function computeAccuracy(refStrokes, drawnStrokes){
+    let n=refStrokes.length;
+    if(!n) return 0;                 // иначе 0/0 -> NaN
+    const refBB=unionBB(refStrokes);
+    const drawnBB=unionBB(drawnStrokes);
+    let total=0;
+    for(let i=0;i<n;i++){
+      const d = drawnStrokes[i];
+      if(d && d.length){             // пустой штрих считаем пропущенным (0), а не роняем всё в NaN
+        const s=shapeScore(refStrokes[i], d);
+        const p=positionScore(refStrokes[i], d, refBB, drawnBB);
+        total += s*0.72 + p*0.28;
+      }
+      // пропущенный штрих даёт 0
+    }
+    let acc = total/n;
+    if(drawnStrokes.length>n) acc*=0.9;
+    acc = clamp(acc,0,1);
+    return Math.pow(acc, 1.35);   // строже к неточности рисования
+  }
+
+  /* ================= ЗВУК ================= */
+  let AC=null;
+  function audio(){
+    if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    return AC;
+  }
+  function tone(freq,dur,type,vol,slide){
+    const ac=audio(); if(!ac||muted) return;
+    const T=ac.currentTime;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(freq,T);
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(20,freq+slide), T+dur);
+    /* Через env(), как музыкальные голоса: раньше громкость выставлялась сразу
+       в полное значение, и каждый эффект начинался со щелчка. */
+    env(g,T,0.004,dur,vol||0.15);
+    o.connect(g); g.connect(ac.destination); o.start(T); o.stop(T+dur+0.02);
+  }
+  const sfxCast=()=>{ tone(280,.32,"sawtooth",.12,620); tone(640,.28,"sine",.08,420); };
+  const sfxCombo=()=>{ tone(440,.16,"sine",.14,220); tone(660,.16,"sine",.14,220); tone(880,.24,"sine",.14,220); };
+  const sfxHit=()=>{ tone(130,.3,"square",.22,-70); tone(70,.35,"sine",.2,-30); };
+  const sfxHurt=()=>{ tone(210,.4,"sawtooth",.18,-130); };
+  const sfxKill=()=>{ tone(520,.18,"sine",.14,300); tone(780,.22,"sine",.12,300); };
+  const sfxPause=()=>{ tone(300,.12,"sine",.12,-60); };
+
+    /* ================= МУЗЫКА В СТИЛЕ АНИМЕ-ОПЕНИНГА (процедурная, Web Audio) =================
+     В аниме-версии звучит J-rock: энергичный темп, дисторшн-гитара, плотные
+     рок-барабаны и запоминающаяся мелодия. Гармония — «королевский ход»
+     王道進行 (IV → V → iii → vi), самый узнаваемый оборот японской поп-музыки.
+     Ведущие инструменты рок-темы — электрогитара, бас и синтезатор соло;
+     лирическая тема играется фортепиано со струнными.
+     (Классическая версия по-прежнему играет китайскую классику в index.html.) */
+  /* Чуть тише прежнего: слоёв стало больше, иначе на пиках слышна перегрузка. */
+  const MUSIC_VOL = 0.40;
+
+  /* Звукоряд строится по полутонам от основного тона: так один набор
+     ступеней подходит и мажору, и минору. */
+  function scaleFrom(rootHz, semis, octaves){
+    const out=[];
+    for(let o=0; o<octaves; o++)
+      for(const s of semis) out.push(Math.round(rootHz*Math.pow(2,o)*Math.pow(2,s/12)*100)/100);
+    return out;
+  }
+  const MAJOR = [0,2,4,5,7,9,11];
+  const MINOR = [0,2,3,5,7,8,10];
+  /* Ми мажор — «гитарная» тональность, удобная для опенинга. */
+  const E_SCALE  = scaleFrom(164.81, MAJOR, 3);   // E3 … D#5
+  /* До-диез минор — параллельный минор, для боевой темы. */
+  const CS_SCALE = scaleFrom(138.59, MINOR, 3);   // C#3 … B5
+  /* Ля мажор — для лирической темы. */
+  const A_SCALE  = scaleFrom(220.00, MAJOR, 3);   // A3 … G#5
+
+  /* Аккорд = три ступени звукоряда подряд. Качество (мажор/минор) получается
+     само: ступени взяты из лада, поэтому отдельная таблица аккордов не нужна. */
+  function triad(scale, deg){
+    return [scale[deg], scale[deg+2], scale[deg+4]];
+  }
+
+  function parseBar(s){
+    const a = s.trim().split(/\s+/).map(x => x === "." ? -1 : parseInt(x,10));
+    while(a.length < 16) a.push(-1);
+    return a.slice(0,16);
+  }
+
+  /* Мелодии записаны ступенями лада: 0 — нижняя нота звукоряда.
+     "." = пауза; один шаг = шестнадцатая доля. */
+
+  // --- основная тема: энергичный опенинг в ми мажоре.
+  //     Королевский ход A → B → G#m → C#m, мелодия в тесситуре вокала.
+  const SONG_MAIN = {
+    bpm:158, scale:E_SCALE, loop:true, style:"rock", leadDur:1.8,
+    form:"AABACBCB",
+    phrases:{
+      // зачин-хук: восходящая фраза
+      A:{ prog:[3,4,2,5], bars:[
+        "7 . 9 . 10 . 11 . . . . . . . . .",
+        "12 . 11 . 10 . 11 . . . . . . . . .",
+        "9 . 8 . 7 . 8 . . . . . . . . .",
+        "7 . . . 6 . 5 . . . . . . . . ."] },
+      // ответ: выше, шире
+      B:{ prog:[3,4,2,5], bars:[
+        "14 . 13 . 12 . 11 . . . . . . . . .",
+        "12 . 13 . 14 . 15 . . . . . . . . .",
+        "14 . 11 . 12 . 13 . . . . . . . . .",
+        "12 . . . 11 . . . 10 . . . 9 . . ."] },
+      // бридж: спокойнее, готовит возврат
+      C:{ prog:[0,3,4,5], bars:[
+        "10 . 12 . 14 . . . . . . . . . . .",
+        "13 . 12 . 11 . . . . . . . . . . .",
+        "9 . 11 . 13 . . . . . . . . . . .",
+        "12 . 11 . 9 . 8 . . . . . . . . ."] }
+    }
+  };
+
+  // --- тема босса: боевой J-rock в до-диез миноре, вдвое напористее.
+  //     Оборот i → VI → III → VII (C#m → A → E → B) — «эпический» ход.
+  const SONG_BOSS = {
+    bpm:176, scale:CS_SCALE, loop:true, style:"rock", leadDur:1.1,
+    form:"ABABABAB",
+    phrases:{
+      // остинато на одной ноте — «наступление»
+      A:{ prog:[0,5,2,6], bars:[
+        "7 7 7 . 9 . 7 . . . . . . . . .",
+        "9 . 9 . 10 . 9 . . . . . . . . .",
+        "11 . 10 . 9 . 8 . . . . . . . . .",
+        "13 . 12 . 11 . 10 . . . . . . . . ."] },
+      // кульминация: восходящие секвенции
+      B:{ prog:[0,5,2,6], bars:[
+        "14 . 13 . 12 . 13 . . . . . . . . .",
+        "14 . 15 . 16 . 15 . . . . . . . . .",
+        "14 . 13 . 11 . 13 . . . . . . . . .",
+        "12 . . . 11 . . . 10 . . . 9 . . ."] }
+    }
+  };
+
+  // --- тема проигрыша: лирическая концовка, фортепиано со струнными.
+  //     Оборот I → V → vi → IV (A → E → F#m → D), играется один раз.
+  const SONG_DEATH = {
+    bpm:74, scale:A_SCALE, loop:false, style:"ballad", leadDur:3.6,
+    form:"AAB",
+    phrases:{
+      A:{ prog:[0,4,5,3], bars:[
+        "7 . . . 9 . . . 11 . . . . . . .",
+        "10 . 9 . 8 . . . . . . . . . . .",
+        "9 . . . 8 . 7 . . . . . . . . .",
+        "8 . . . 7 . . . . . . . . . . ."] },
+      B:{ prog:[0,4,5,3], bars:[
+        "11 . . . 9 . . . . . . . . . . .",
+        "8 . 9 . 10 . 9 . . . . . . . . .",
+        "8 . . . 7 . . . . . . . . . . .",
+        "7 . . . . . . . . . . . . . . ."] }
+    }
+  };
+
+  let musicOn=false, musicPref=true, musicTimer=null, nextNoteTime=0, musicStep=0;
+  let musicGain=null, noiseBuf=null, currentSong=null, currentTrack="main";
+
+  function noiseBuffer(){
+    const ac=audio(); if(!ac) return null;
+    if(!noiseBuf){
+      const len=Math.floor(ac.sampleRate*1.2);
+      noiseBuf=ac.createBuffer(1,len,ac.sampleRate);
+      const d=noiseBuf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    }
+    return noiseBuf;
+  }
+  function mgain(){
+    const ac=audio(); if(!ac) return null;
+    if(!musicGain){
+      musicGain=ac.createGain();
+      musicGain.connect(ac.destination);
+    }
+    /* Громкость выставляем при каждом обращении, а не только при создании узла:
+       иначе создание гейна в приглушённом состоянии зафиксировало бы её навсегда. */
+    musicGain.gain.value = muted ? 0 : MUSIC_VOL;
+    return musicGain;
+  }
+  function env(g,t,a,dur,vol){
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(vol,t+a);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+a+dur);
+  }
+
+  /* --- перегрузка гитары: мягкое ограничение сигнала (waveshaper).
+         Кривая считается один раз и переиспользуется всеми нотами. --- */
+  let guitarCurve=null;
+  function guitarDist(){
+    const ac=audio(); if(!ac) return null;
+    if(!guitarCurve){
+      const n=2048, c=new Float32Array(n), k=24;
+      for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=(1+k)*x/(1+k*Math.abs(x)); }
+      guitarCurve=c;
+    }
+    const w=ac.createWaveShaper();
+    w.curve=guitarCurve; w.oversample="4x";
+    return w;
+  }
+
+  /* --- электрогитара с перегрузом: две расстроенные пилы + фильтр --- */
+  function distGuitar(freq,t,dur,vol){
+    const ac=audio(); if(!ac) return;
+    const d=guitarDist(); if(!d) return;
+    const o1=ac.createOscillator(), o2=ac.createOscillator();
+    o1.type="sawtooth"; o2.type="sawtooth";
+    o1.frequency.value=freq;
+    o2.frequency.value=freq*0.996;            // лёгкий расстрой -> «стена звука»
+    const lp=ac.createBiquadFilter(), g=ac.createGain();
+    lp.type="lowpass"; lp.frequency.value=3400; lp.Q.value=0.7;
+    env(g,t,0.008,dur,vol||0.15);
+    o1.connect(d); o2.connect(d); d.connect(lp); lp.connect(g); g.connect(mgain());
+    o1.start(t); o2.start(t); o1.stop(t+dur+0.12); o2.stop(t+dur+0.12);
+  }
+  /* Квинт-аккорд (power chord): корень + квинта + октава ниже — основа рока. */
+  function powerChord(root,t,dur,vol){
+    const v=vol||0.15;
+    distGuitar(root,t,dur,v);
+    distGuitar(root*1.4983,t,dur,v*0.55);
+    distGuitar(root*0.5,t,dur,v*0.42);
+  }
+  /* Приглушённый удар по струнам (palm mute) — короткий, глухой. */
+  function muteChug(root,t,vol){
+    const ac=audio(); if(!ac) return;
+    const d=guitarDist(); if(!d) return;
+    const o=ac.createOscillator(), lp=ac.createBiquadFilter(), g=ac.createGain();
+    o.type="sawtooth"; o.frequency.value=root;
+    lp.type="lowpass";
+    lp.frequency.setValueAtTime(1500,t);
+    lp.frequency.exponentialRampToValueAtTime(480,t+0.09);
+    g.gain.setValueAtTime(vol||0.12,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.11);
+    o.connect(d); d.connect(lp); lp.connect(g); g.connect(mgain());
+    o.start(t); o.stop(t+0.13);
+  }
+  /* --- синтезатор соло: три пилы в унисон, как в аниме-опенингах --- */
+  function leadSynth(freq,t,dur,vol){
+    const ac=audio(); if(!ac) return;
+    const g=ac.createGain(), lp=ac.createBiquadFilter();
+    lp.type="lowpass"; lp.Q.value=0.9;
+    lp.frequency.setValueAtTime(5400,t);
+    lp.frequency.exponentialRampToValueAtTime(2400,t+dur);
+    env(g,t,0.02,dur,vol||0.11);
+    lp.connect(g); g.connect(mgain());
+    for(const det of [-7,0,7]){
+      const o=ac.createOscillator();
+      o.type="sawtooth";
+      o.frequency.value=freq*Math.pow(2,det/1200);
+      o.connect(lp); o.start(t); o.stop(t+dur+0.12);
+    }
+  }
+  /* --- электропианино: короткая атака, долгий звонкий хвост --- */
+  function piano(freq,t,dur,vol){
+    const ac=audio(); if(!ac) return;
+    const o=ac.createOscillator(), o2=ac.createOscillator(), g=ac.createGain();
+    o.type="triangle"; o2.type="sine";
+    o.frequency.value=freq; o2.frequency.value=freq*2.002;
+    env(g,t,0.005,dur*1.6,vol||0.10);
+    const g2=ac.createGain(); g2.gain.value=0.32;
+    o2.connect(g2); g2.connect(g);
+    o.connect(g); g.connect(mgain());
+    o.start(t); o2.start(t); o.stop(t+dur*1.6+0.2); o2.stop(t+dur*1.6+0.2);
+  }
+  /* --- струнные: медленная атака, ровный подклад --- */
+  function strings(freq,t,dur,vol){
+    const ac=audio(); if(!ac) return;
+    const g=ac.createGain(), lp=ac.createBiquadFilter();
+    lp.type="lowpass"; lp.frequency.value=2600;
+    env(g,t,0.30,dur,vol||0.055);
+    lp.connect(g); g.connect(mgain());
+    for(const det of [-4,4]){
+      const o=ac.createOscillator();
+      o.type="sawtooth";
+      o.frequency.value=freq*Math.pow(2,det/1200);
+      o.connect(lp); o.start(t); o.stop(t+dur+0.4);
+    }
+  }
+  /* --- бас-гитара: пила + квадрат, срез фильтра вниз --- */
+  function bassGtr(freq,t,dur,vol){
+    const ac=audio(); if(!ac) return;
+    const o=ac.createOscillator(), o2=ac.createOscillator(), lp=ac.createBiquadFilter(), g=ac.createGain();
+    o.type="sawtooth"; o2.type="square";
+    o.frequency.value=freq; o2.frequency.value=freq*0.5;
+    lp.type="lowpass";
+    lp.frequency.setValueAtTime(950,t);
+    lp.frequency.exponentialRampToValueAtTime(300,t+0.18);
+    env(g,t,0.006,dur,vol||0.19);
+    o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(mgain());
+    o.start(t); o2.start(t); o.stop(t+dur+0.1); o2.stop(t+dur+0.1);
+  }
+
+  /* --- барабаны: бочка, малый, хай-хэт, крэш --- */
+  function kick(t,vol){
+    const ac=audio(); if(!ac) return;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type="sine";
+    o.frequency.setValueAtTime(140,t);
+    o.frequency.exponentialRampToValueAtTime(44,t+0.09);
+    g.gain.setValueAtTime(vol||0.5,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.20);
+    o.connect(g); g.connect(mgain());
+    o.start(t); o.stop(t+0.22);
+    /* Щелчок по мембране: без него удар звучит «ватно». */
+    const buf=noiseBuffer();
+    if(buf){
+      const n=ac.createBufferSource(); n.buffer=buf;
+      const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=1800;
+      const ng=ac.createGain();
+      ng.gain.setValueAtTime((vol||0.5)*0.25,t);
+      ng.gain.exponentialRampToValueAtTime(0.0001,t+0.03);
+      n.connect(hp); hp.connect(ng); ng.connect(mgain());
+      n.start(t); n.stop(t+0.05);
+    }
+  }
+  function snare(t,vol){
+    const ac=audio(); if(!ac) return;
+    const v=vol||0.23;
+    const buf=noiseBuffer();
+    if(buf){
+      const n=ac.createBufferSource(); n.buffer=buf;
+      const bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1900; bp.Q.value=0.8;
+      const g=ac.createGain();
+      g.gain.setValueAtTime(v,t);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+      n.connect(bp); bp.connect(g); g.connect(mgain());
+      n.start(t); n.stop(t+0.18);
+    }
+    /* Корпус малого барабана — короткий тон ниже шума. */
+    const o=ac.createOscillator(), og=ac.createGain();
+    o.type="triangle";
+    o.frequency.setValueAtTime(210,t);
+    o.frequency.exponentialRampToValueAtTime(150,t+0.06);
+    og.gain.setValueAtTime(v*0.5,t);
+    og.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+    o.connect(og); og.connect(mgain());
+    o.start(t); o.stop(t+0.09);
+  }
+  function hihat(t,open,vol){
+    const ac=audio(); if(!ac) return;
+    const buf=noiseBuffer(); if(!buf) return;
+    const n=ac.createBufferSource(); n.buffer=buf;
+    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=7000;
+    const g=ac.createGain();
+    const d=open?0.26:0.05;
+    g.gain.setValueAtTime(vol||0.085,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    n.connect(hp); hp.connect(g); g.connect(mgain());
+    n.start(t); n.stop(t+d+0.02);
+  }
+  function crash(t,vol){
+    const ac=audio(); if(!ac) return;
+    const buf=noiseBuffer(); if(!buf) return;
+    const n=ac.createBufferSource(); n.buffer=buf;
+    const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=4200;
+    const g=ac.createGain();
+    g.gain.setValueAtTime(vol||0.18,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+1.4);
+    n.connect(hp); hp.connect(g); g.connect(mgain());
+    n.start(t); n.stop(t+1.5);
+  }
+
+  function buildSong(cfg){
+    const form=cfg.form.replace(/\s+/g,"");
+    const bars=[];
+    for(let pi=0; pi<form.length; pi++){
+      const ph=cfg.phrases[form[pi]];
+      if(!ph) continue;
+      for(let bi=0; bi<ph.bars.length; bi++){
+        bars.push({
+          lead:parseBar(ph.bars[bi]),
+          /* Аккорд берётся по номеру такта ВНУТРИ фразы: так прогрессия
+             не разъезжается с мелодией при изменении длины фразы. */
+          chord:ph.prog[bi % ph.prog.length],
+          section:form[pi],
+          /* Крэш и «первая доля» — только в начале фразы, иначе шумно. */
+          crash:(bi===0 && pi%2===0),
+          first:(bi===0)
+        });
+      }
+    }
+    return { cfg:cfg, scale:cfg.scale, bars:bars, stepDur:60/cfg.bpm/4, style:cfg.style };
+  }
+
+  function playStep(song,s,t){
+    const bar=song.bars[Math.floor(s/16) % song.bars.length];
+    const st=s%16, c=song.cfg, sd=song.stepDur, scale=song.scale;
+    const n=bar.lead[st];
+    const chorus=(bar.section==="B"||bar.section==="C");
+
+    /* --- мелодия --- */
+    if(n>=0){
+      const f=scale[n];
+      if(c.style==="rock"){
+        leadSynth(f,t,sd*c.leadDur,0.105);
+        if(chorus) distGuitar(f,t,sd*c.leadDur*0.9,0.075);   // гитара дублирует тему
+        /* Подголосок в терцию на припеве — приём аниме-аранжировок. */
+        if(chorus && n+2 < scale.length) leadSynth(scale[n+2],t,sd*c.leadDur*0.85,0.045);
+      } else {
+        piano(f,t,sd*c.leadDur,0.10);
+      }
+    }
+
+    if(c.style==="rock"){
+      const ch=triad(scale, bar.chord);
+      /* Ритм-гитара: аккорд на сильных долях, между ними — приглушённый бой. */
+      if(st===0||st===4||st===8||st===12) powerChord(ch[0], t, sd*3.2, bar.first?0.16:0.135);
+      else if(st%2===1) muteChug(ch[0]*0.5, t, 0.075);
+      /* Бас качается восьмыми по корню аккорда. */
+      const broot=scale[bar.chord]*0.5;
+      if(st%4===0) bassGtr(broot,t,sd*2.2,0.19);
+      else if(st%2===0) bassGtr(broot,t,sd*0.9,0.11);
+      /* Бочка — на 1 и 3, плюс «двойной» удар для драйва. */
+      if(st===0) kick(t,0.50);
+      if(st===8) kick(t,0.44);
+      if(st===6||st===10) kick(t,0.28);
+      /* Малый — на 2 и 4. */
+      if(st===4||st===12) snare(t,0.23);
+      /* Хай-хэт восьмыми, открытый на последней доле. */
+      if(st%2===0) hihat(t,false,0.08);
+      else if(st===14) hihat(t,true,0.065);
+      if(bar.crash && st===0) crash(t,0.17);
+    } else {
+      /* Лирическая тема: струнные, фортепиано и мягкий бас, без барабанов. */
+      const ch=triad(scale, bar.chord);
+      if(st===0) strings(ch[0],t,sd*14,0.050);
+      if(st%4===0) piano(ch[0]*0.5,t,sd*3,0.070);              // низкий бас фортепиано
+      else if(st===2||st===6||st===10||st===14) piano(ch[1],t,sd*2,0.042);
+      if(st===4||st===12) piano(ch[2],t,sd*2.4,0.038);
+      if(st===8) bassGtr(scale[bar.chord]*0.5,t,sd*4,0.12);
+    }
+  }
+
+  function musicScheduler(){
+    const ac=audio(); if(!ac || !musicOn || !currentSong) return;
+    const sd=currentSong.stepDur;
+    while(nextNoteTime < ac.currentTime + 0.18){
+      /* Если вкладка была в фоне (setInterval троттлится до >=1 с), nextNoteTime
+         безнадёжно отстаёт. Раньше цикл доигрывал каждую пропущенную ноту —
+         сотни нот с метками в прошлом, слипшийся клубок. Пересинхронизируемся
+         вместо доигрывания пропущенного. */
+      if(nextNoteTime < ac.currentTime - 0.05) nextNoteTime = ac.currentTime + 0.02;
+      playStep(currentSong, musicStep, nextNoteTime);
+      musicStep++;
+      nextNoteTime += sd;
+      if(!currentSong.cfg.loop && musicStep >= currentSong.bars.length*16){
+        stopMusic();
+        return;
+      }
+    }
+  }
+  function stopMusicLoop(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
+  function updateMusicBtn(){ const b=$("musicBtn"); if(b) b.textContent = musicOn ? "🎵" : "🔕"; }
+  function playSong(track){
+    const ac=audio(); if(!ac) return;
+    currentTrack = track || "main";
+    currentSong = buildSong(trackCfg(currentTrack));
+    musicStep=0;
+    nextNoteTime=ac.currentTime+0.06;
+    musicOn=true;
+    mgain();
+    stopMusicLoop();
+    musicTimer=setInterval(musicScheduler,25);
+    updateMusicBtn();
+  }
+  function setTrack(track){
+    currentTrack = track;
+    if(!musicPref) return;
+    if(musicOn && musicTimer && currentSong && currentSong.cfg===trackCfg(track)) return;
+    playSong(track);
+  }
+  function trackCfg(track){ return track==="boss" ? SONG_BOSS : track==="death" ? SONG_DEATH : SONG_MAIN; }
+  function stopMusic(){ musicOn=false; stopMusicLoop(); updateMusicBtn(); }
+  function toggleMusic(){
+    musicPref = !musicPref;
+    /* Особый случай currentTrack==="death" ? "main" : currentTrack убран:
+       из-за него тема смерти терялась безвозвратно, а currentTrack
+       перезаписывался. Завершение песни и так обрабатывается флагом loop:false. */
+    if(musicPref) playSong(currentTrack || "main");
+    else stopMusic();
+  }
+
+  /* ================= РЕНДЕР ================= */
+  function drawPolyline(pts, color, width, dash){
+    if(!pts||pts.length<1) return;
+    ctx.save();
+    ctx.strokeStyle=color; ctx.lineWidth=width; ctx.lineCap="round"; ctx.lineJoin="round";
+    if(dash) ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+    ctx.stroke(); ctx.restore();
+  }
+
+  /* Крест-ориентир по границам поля иероглифа: линии идут от края поля
+     (GRID/2 - FIELD_SIDE/2) до противоположного края, а не на фиксированных
+     80..944, которые не совпадали с полем после приведения штрихов. */
+  const FIELD_LO = (GRID - FIELD_SIDE) / 2, FIELD_HI = FIELD_LO + FIELD_SIDE;
+  function render(){
+    ctx.clearRect(0,0,GRID,GRID);
+    ctx.save();
+    ctx.strokeStyle="rgba(120,150,255,.08)"; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(GRID/2,FIELD_LO); ctx.lineTo(GRID/2,FIELD_HI);
+    ctx.moveTo(FIELD_LO,GRID/2); ctx.lineTo(FIELD_HI,GRID/2);
+    ctx.stroke();
+    ctx.restore();
+
+    if(hintOn && refStrokes && !demo.active){
+      for(let i=0;i<refStrokes.length;i++){
+        const isCur = (i===drawn.length);
+        const col = isCur ? "rgba(87,224,255,.55)" : "rgba(255,255,255,.14)";
+        const w = isCur ? 40 : 30;
+        drawPolyline(resample(refStrokes[i],80), col, w);
+      }
+    }
+
+    for(const s of drawn){
+      let col = "#eaf2ff";
+      if(s.quality!==null){
+        col = s.quality>=0.75 ? "#5effb0" : (s.quality>=0.5 ? "#ffd166" : "#ff6b7a");
+      }
+      drawPolyline(s.pts, col, 30);
+    }
+    if(current && current.length) drawPolyline(current, "#7fd4ff", 32);
+  }
+
+  /* ================= ДЕМО ПОРЯДКА ШТРИХОВ ================= */
+  let demo={active:false, stroke:0, t:0, raf:0};
+  function demoLoop(){
+    if(!demo.active || paused){ demo.active=false; render(); return; }
+    ctx.clearRect(0,0,GRID,GRID);
+    ctx.save(); ctx.strokeStyle="rgba(120,150,255,.08)"; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(GRID/2,FIELD_LO); ctx.lineTo(GRID/2,FIELD_HI);
+    ctx.moveTo(FIELD_LO,GRID/2); ctx.lineTo(FIELD_HI,GRID/2);
+    ctx.stroke(); ctx.restore();
+    for(let s=0;s<demo.stroke;s++) drawPolyline(resample(refStrokes[s],80), "rgba(255,209,102,.85)", 30);
+    const pts = refStrokes[demo.stroke];
+    const path = resample(pts, 70);
+    const k = Math.min(path.length-1, Math.floor(demo.t));
+    drawPolyline(path.slice(0, k+1), "#ffd166", 34);
+    const p = path[Math.min(path.length-1, Math.floor(demo.t))];
+    ctx.beginPath(); ctx.arc(p[0],p[1],26,0,7); ctx.fillStyle="rgba(255,230,150,.95)"; ctx.fill();
+    ctx.beginPath(); ctx.arc(p[0],p[1],38,0,7); ctx.fillStyle="rgba(255,209,102,.25)"; ctx.fill();
+    demo.t += 0.55;
+    if(demo.t >= path.length){
+      demo.stroke++; demo.t=0;
+      if(demo.stroke>=refStrokes.length){ demo.active=false; render(); return; }
+    }
+    demo.raf=requestAnimationFrame(demoLoop);
+  }
+  function startDemo(){
+    if(!refStrokes || refStrokes.length===0 || demo.active) return;
+    demo.active=true; demo.stroke=0; demo.t=0;
+    cancelAnimationFrame(demo.raf);
+    demo.raf=requestAnimationFrame(demoLoop);
+  }
+  function stopDemo(){ demo.active=false; cancelAnimationFrame(demo.raf); render(); }
+
+  /* ================= ИНТЕРФЕЙС: ПОСЛЕДОВАТЕЛЬНОСТЬ И ИНВЕНТАРЬ ================= */
+  function renderPlan(){
+    const slots = $("seqBar").querySelectorAll(".slot");
+    slots.forEach((sl,i)=>{
+      sl.classList.remove("filled","active");
+      if(i<plan.length){ sl.textContent = plan[i].ch; if(i<written.length) sl.classList.add("filled"); }
+      else sl.textContent = "·";
+      if(i===written.length && i<plan.length) sl.classList.add("active");
+    });
+    const isCombo = (attackMode==="combo" && comboOffer);
+    $("seqBar").classList.toggle("combo", !!isCombo);
+    $("seqLabel").classList.toggle("combo", !!isCombo);
+    if(isCombo){
+      $("seqLabel").textContent = "🔗 Комбо «"+comboOffer.name+"» ×"+comboOffer.mult+" — руна "+(written.length+1)+" из "+plan.length;
+    } else {
+      $("seqLabel").textContent = t("board.attacks", {n:(written.length+1), total:plan.length});
+    }
+  }
+
+  function renderAttackChoice(){
+    const bar = $("attackBar");
+    if(!bar) return;
+    bar.innerHTML = "";
+    const single = document.createElement("button");
+    single.className = "atkcard" + (attackMode==="single" ? " sel" : "");
+    single.innerHTML = '<span class="atkicon">⚔</span><span class="atkbody"><b>'+t("atk.normal")+'</b>' +
+      '<span class="atkrunes">'+(singleRune?singleRune.ch:"?")+'</span>' +
+      '<span class="atknote">'+t("atk.normal_note")+'</span></span>';
+    single.addEventListener("click", function(){ if(running && !resolving && !paused) chooseAttack("single"); });
+    bar.appendChild(single);
+
+    if(comboOffer){
+      const c = document.createElement("button");
+      c.className = "atkcard combo" + (attackMode==="combo" ? " sel" : "");
+      c.innerHTML = '<span class="atkicon">🔗</span><span class="atkbody"><b>Комбо: «'+comboOffer.name+'»</b>' +
+        '<span class="atkrunes">'+comboOffer.w+'</span>' +
+        '<span class="atknote">'+comboOffer.len+' руны · ×'+comboOffer.mult+' урона</span></span>';
+      c.addEventListener("click", function(){ if(running && !resolving && !paused) chooseAttack("combo"); });
+      bar.appendChild(c);
+    } else {
+      const h = document.createElement("div");
+      h.className = "atkhint";
+      h.textContent = "Комбо открываются с ростом сложности и всегда доступны на боссах";
+      bar.appendChild(h);
+    }
+  }
+
+  function comboAllowed(){ return !!(curEnemy && (curEnemy.isBoss || round >= 2)); }
+  /* Какие иероглифы игрок уже «проходил». Иероглифы идут по возрастанию
+     сложности написания, но простых редких знаков в начале много, поэтому
+     жёсткое «первые round+4» открывало комбо слишком медленно. Берём не только
+     префикс, но и те знаки, что уже встречались в сыгранных раундах. */
+  function taughtSet(){
+    const taught = {};
+    const limit = Math.min(round + 4, CHARACTERS.length);
+    for(let i=0;i<limit;i++) taught[CHARACTERS[i].ch] = 1;
+    /* Плюс иероглифы, реально выпадавшие в пройденных раундах. */
+    const seen = Math.min(round + 1, CHARACTERS.length);
+    for(let i=0;i<seen;i++) taught[CHARACTERS[i].ch] = 1;
+    /* И знаки из комбо, которые уже предлагались: игрок их видел. */
+    if(comboOffer) for(const ch of comboOffer.w) taught[ch] = 1;
+    return taught;
+  }
+  function pickCombo(){
+    if(!comboAllowed()) return null;
+    const taught = taughtSet();
+    const len = round < 10 ? 2 : 3;
+    let list = COMBOS.filter(function(c){ return c.len===len && [...c.w].every(function(ch){ return taught[ch]; }); });
+    /* Если двухрунных с изученными знаками нет, берём любое короткое комбо:
+       иначе выбор атаки остаётся пустым и игрок не может собрать комбо вовсе. */
+    if(!list.length) list = COMBOS.filter(function(c){ return c.len===2 && c.w.length===2; });
+    if(!list.length) list = COMBOS.filter(function(c){ return c.len===len; });
+    if(!list.length) return null;
+    return list[(round*3 + 1) % list.length];
+  }
+  function resetPlan(){
+    written = [];
+    planStart = performance.now();
+    pauseAccum = 0;
+    if(attackMode==="combo" && comboOffer){
+      plan = [...comboOffer.w].map(function(ch){ return CHAR_BY_CH[ch]; }).filter(Boolean);
+    } else {
+      attackMode = "single";
+      plan = [singleRune];
+    }
+    if(!plan.length || !plan[0]) plan = [singleRune || CHARACTERS[0]];
+    setTarget(plan[0]);
+    renderPlan();
+    renderAttackChoice();
+  }
+  function chooseAttack(mode){
+    if(!running || resolving || paused) return;
+    attackMode = mode;
+    resetPlan();
+  }
+  function chooseSingleRune(meta){
+    singleRune = meta;
+    if(attackMode === "single") resetPlan();
+    else renderAttackChoice();
+  }
+
+  function renderInventory(){
+    const cont = $("inventory");
+    cont.innerHTML = "";
+    const learned = CHARACTERS.filter(c => inventory.has(c.ch));
+    if(learned.length===0){
+      const h=document.createElement("span"); h.className="invHint";
+      h.textContent=t("inv.empty");
+      cont.appendChild(h); return;
+    }
+    for(const c of learned){
+      const b=document.createElement("button");
+      b.className = "rune" + (targetChar && targetChar.ch===c.ch ? " selected" : "");
+      b.appendChild(document.createTextNode(c.ch));
+      b.title = t("char.title", {ch:c.ch, py:c.py, mean:charMean(c)});
+      b.addEventListener("click", ()=>{ if(!paused && !resolving && running){ chooseSingleRune(c); } });
+      cont.appendChild(b);
+    }
+  }
+
+  /* ================= РАУНДЫ ================= */
+  function setTarget(meta){
+    targetChar = meta;
+    refStrokes = strokesOf(meta.ch);
+    drawn=[]; current=null;
+    $("runeChar").textContent = meta.ch;
+    $("runePy").textContent = meta.py;
+    $("runeMean").textContent = charMean(meta);
+    $("spellTag").textContent = t("board.runes_named", {mean:charMean(meta)});
+    render();
+    renderInventory();
+    setFeedback(t("board.write_prompt", {ch:meta.ch, mean:charMean(meta)}), "");
+  }
+
+  /* ================= АРТ И СОСТОЯНИЯ ПЕРСОНАЖЕЙ ================= */
+  const CHAR_STATES = ["is-idle","is-walk","is-attack","is-defend","is-hit","is-death"];
+  function setEnemyArt(kind, stage){
+    const box = $("enemyAvatar");
+    box.innerHTML = "";
+    /* 1) аниме-арт из enemies-anime.js — вставляем как разметку SVG */
+    if(window.animeArtSVG){
+      const svg = window.animeArtSVG(kind, stage || 1);
+      if(svg){ box.innerHTML = svg; return true; }
+    }
+    /* 2) запасной путь — прежние <template> из этого файла */
+    const tpl = document.getElementById("tpl-"+kind);
+    if(tpl) box.appendChild(tpl.content.cloneNode(true));
+    return !!tpl;
+  }
+  function setState(el, state, revertMs){
+    if(!el) return;
+    const s = "is-"+state;
+    el.classList.remove(...CHAR_STATES);
+    el.classList.add(s);
+    el.dataset.state = s;
+    if(el._revert){ clearTimeout(el._revert); el._revert = null; }
+    if(revertMs){
+      el._revert = setTimeout(()=>{
+        if(el.dataset.state === s && s !== "is-death"){
+          el.classList.remove(s); el.classList.add("is-idle"); el.dataset.state = "is-idle";
+        }
+      }, revertMs);
+    }
+  }
+  function enemyEnter(){
+    const el = $("enemyAvatar");
+    el.classList.remove("entering"); void el.offsetWidth; el.classList.add("entering");
+    setState(el, "walk", 900);
+  }
+
+  function startRound(){
+    stopDemo();
+    const lesson = CHARACTERS[round % CHARACTERS.length];
+    const diff = 1 + Math.floor(round / CHARACTERS.length);
+    const isBoss = (round % 10 === 9);
+    /* Номер босса растёт с каждым десятым ходом и идёт по кругу из 7.
+       Обычный враг — по кругу из 30, поэтому все облики успевают появиться. */
+    const bossIdx = Math.floor(round / 10) % BOSSES.length;
+    const base = isBoss ? BOSSES[bossIdx] : ENEMIES[round % ENEMIES.length];
+    let hp, atk, atkTime;
+    if(isBoss){
+      hp = Math.round(base.hp * (5 + 1.2*(diff-1)));
+      atk = Math.round(base.atk * 1.5 * (1 + 0.3*(diff-1)));
+      atkTime = Math.max(6, base.atkTime * 0.85 * (1 - 0.05*(diff-1)));
+    } else {
+      hp = Math.round(base.hp * (1 + 0.6*(diff-1)));
+      atk = Math.round(base.atk * (1 + 0.3*(diff-1)));
+      atkTime = Math.max(6, base.atkTime * (1 - 0.05*(diff-1)));
+    }
+    const stage = enemyStage();
+    curEnemy = {
+      art: base.art,
+      name: enemyName(base, isBoss),
+      title: isBoss ? (base.title || "") : "",
+      /* переводы титула — чтобы заголовок босса менялся вместе с языком */
+      titleEn: isBoss ? (base.titleEn || "") : "",
+      titleZh: isBoss ? (base.titleZh || "") : "",
+      color: base.color, hp, hpMax:hp, atk, atkTime, isBoss, stage:stageSafe(stage)
+    };
+    drawn=[]; current=null; resolving=false;
+    clockStart = performance.now(); lastNow = clockStart; pauseAccum = 0;
+    singleRune = lesson;
+    attackMode = "single";
+    comboOffer = pickCombo();
+    plan = []; written = [];
+    enemyAtkMax = curEnemy.atkTime*1000; enemyAtkLeft = enemyAtkMax;
+    mana = 100;
+
+    $("round").textContent = round+1;
+    $("level").textContent = diff;
+    $("enemyName").textContent = curEnemy.name;
+    $("enemyTitle").textContent = enemyTitleText(curEnemy);
+    $("bossBadge").style.display = isBoss ? "block" : "none";
+    $("enemyAvatar").classList.toggle("boss", isBoss);
+    /* Цвет и свечение рамки берём из палитры врага и его стадии. */
+    (function(){
+      const av = $("enemyAvatar");
+      const mood = (window.animeMood ? window.animeMood(curEnemy.art, curEnemy.stage) : null);
+      const col = mood ? mood.base : curEnemy.color;
+      av.style.setProperty("--enemy-color", col);
+      av.style.setProperty("--enemy-glow", mood ? mood.glow : "rgba(255,255,255,0)");
+      av.dataset.stage = String(curEnemy.stage);
+    })();
+    const stageEl = $("enemyStage");
+    if(stageEl){
+      stageEl.textContent = "ступень " + curEnemy.stage + "/4";
+      stageEl.style.display = "block";
+    }
+    setEnemyArt(curEnemy.art, curEnemy.stage);
+    setState($("mageAvatar"), "idle");
+    enemyEnter();
+    setTrack(isBoss ? "boss" : "main");
+
+    setTarget(lesson);
+    resetPlan();
+    renderInventory();
+    updateHud();
+    render();
+  }
+
+  function setFeedback(text, cls){
+    const f=$("feedback"); f.textContent=text; f.className="feedback"+(cls?" "+cls:"");
+  }
+  function log(text){ $("logline").textContent = text; }
+
+  function updateHud(){
+    $("score").textContent = score;
+    $("streak").textContent = "×" + (1+streak*0.12).toFixed(2);
+    $("streak").style.opacity = streak>0 ? "1" : "0.35";
+    $("mageHpFill").style.width = clamp(mageHp/mageHpMax*100,0,100)+"%";
+    $("mageHpText").textContent = Math.max(0,mageHp)+"/"+mageHpMax;
+    $("manaFill").style.width = mana+"%";
+    $("manaText").textContent = Math.round(mana)+"%";
+    if(refStrokes && refStrokes.length){
+      $("timerFill").style.width = clamp(drawn.length/refStrokes.length*100,0,100)+"%";
+    }
+    if(curEnemy){
+      $("enemyHpFill").style.width = clamp(curEnemy.hp/curEnemy.hpMax*100,0,100)+"%";
+      $("enemyHpText").textContent = Math.max(0,Math.round(curEnemy.hp))+"/"+curEnemy.hpMax;
+      const left = clamp(enemyAtkLeft/enemyAtkMax,0,1);
+      $("enemyTimer").style.width = left*100+"%";
+      $("enemyTimerText").textContent = (enemyAtkLeft/1000).toFixed(1)+"с";
+    }
+  }
+
+  /* ================= ЭФФЕКТЫ ================= */
+  function centerOf(el){
+    const r=el.getBoundingClientRect();
+    return {x:r.left+r.width/2, y:r.top+r.height/2};
+  }
+  function burst(x,y,colors,n,spread,speed){
+    for(let i=0;i<n;i++){
+      const p=document.createElement("span");
+      p.className="particle";
+      const c=colors[Math.floor(Math.random()*colors.length)];
+      p.style.color=c;
+      p.style.left=x+"px"; p.style.top=y+"px";
+      const a=Math.random()*Math.PI*2, d=spread*(0.4+Math.random());
+      p.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) scale(0)`,opacity:0}],
+        {duration:500+Math.random()*500, easing:"cubic-bezier(.2,.6,.3,1)"});
+      p.addEventListener("animationend",()=>p.remove());
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 1100);
+    }
+  }
+  function dmgNum(x,y,text,cls){
+    const d=document.createElement("div");
+    d.className="dmg "+cls; d.textContent=text; d.style.left=x+"px"; d.style.top=y+"px";
+    document.body.appendChild(d);
+    d.addEventListener("animationend",()=>d.remove());
+  }
+  function shake(){ const g=$("game"); g.classList.remove("shake"); void g.offsetWidth; g.classList.add("shake"); }
+  function redFlash(){ document.body.classList.remove("flash"); void document.body.offsetWidth; document.body.classList.add("flash"); }
+
+  /* ================= ВЫПУСК ЗАКЛИНАНИЯ ================= */
+  function releaseSpell(){
+    if(!running || resolving || written.length===0) return;
+    resolving = true;
+    autoPending = false;
+    const elapsed = Math.max(0.4, (performance.now() - planStart - pauseAccum)/1000);
+    const basePower = 46 + round*4;
+    let totalStrokes = 0, minAcc = 1;
+    for(const w of written){
+      totalStrokes += strokesOf(w.ch).length || 1;
+      minAcc = Math.min(minAcc, w.acc);
+    }
+    const isCombo = written.length > 1;
+    const comboMult = (isCombo && comboOffer) ? comboOffer.mult : 1.0;
+    const speedFactor = clamp((totalStrokes*2.2 + 1.5)/elapsed, 0.5, 2.0);
+    const streakMult = 1 + streak*0.12;
+    let dmg = basePower * (0.2 + 0.8*minAcc) * speedFactor * comboMult * streakMult;
+    if(curEnemy.isBoss && !isCombo) dmg *= BOSS_ARMOR;   // броня босса против одиночных атак
+    dmg = Math.max(1, Math.round(dmg));
+
+    const snap = written.slice();
+    written = [];
+    renderPlan();
+
+    const mage = $("mageAvatar");
+    setState(mage, "attack", 650);
+    setState($("enemyAvatar"), "defend", 380);
+    (isCombo ? sfxCombo : sfxCast)();
+
+    const mc = centerOf(mage), ec = centerOf($("enemyAvatar"));
+    const bolt=document.createElement("div");
+    bolt.className = "bolt" + (isCombo ? " combo" : "");
+    bolt.textContent = isCombo ? "💥" : "✨";
+    bolt.style.left=(mc.x-17)+"px"; bolt.style.top=(mc.y-17)+"px";
+    document.body.appendChild(bolt);
+    void bolt.offsetWidth;
+    bolt.style.transform=`translate(${ec.x-mc.x}px, ${ec.y-mc.y}px) scale(1.3)`;
+
+    setTimeout(()=>{
+      bolt.remove();
+      curEnemy.hp -= dmg;
+      sfxHit();
+      burst(ec.x, ec.y, isCombo ? ["#ff9d2e","#ff6bd5","#ffd166","#ff5b5b"] : ["#7fd4ff","#a86bff","#ffd166"], isCombo?30:18, 120, 4);
+      dmgNum(ec.x, ec.y-20, "-"+dmg, isCombo ? "combo" : "hurt");
+      if(isCombo && comboOffer){ dmgNum(ec.x, ec.y-60, comboOffer.name+" ×"+comboOffer.mult, "combo"); }
+      shake();
+
+      let accCls = minAcc>=0.88 ? "good" : (minAcc>=0.6 ? "" : "bad");
+      const verdict = minAcc>=0.92 ? t("grade.perfect") : (minAcc>=0.8 ? t("grade.great") : (minAcc>=0.6 ? t("grade.ok") : t("grade.poor")));
+      const spellName = (isCombo && comboOffer) ? ("«"+comboOffer.name+"»") : (snap[0] ? snap[0].ch : t("tip.spell_word"));
+      setFeedback(verdict+" "+spellName+" — урон "+dmg+" (точность "+Math.round(minAcc*100)+"%)", accCls);
+
+      if(minAcc>=0.85) streak=Math.min(streak+1, 10); else streak=0;
+
+      score += dmg + Math.round(minAcc*50*(isCombo?2:1)) + (hintOn?0:Math.round(minAcc*25));
+      mana = clamp(mana - 20*Math.max(1, snap.length), 0, 100);
+      if(mana<=0) mana=100;
+
+      if(curEnemy.hp<=0){
+        curEnemy.hp=0;
+        setState($("enemyAvatar"), "death");
+        sfxKill();
+        score += 100 + curEnemy.hpMax;
+        log(t("log.enemy_down", {name:curEnemy.name, score:(100+curEnemy.hpMax)}));
+        round++;
+        if(round % 3 === 0){ mageHp=Math.min(mageHpMax, mageHp+25); }
+        setTimeout(startRound, 1000);
+      } else {
+        setState($("enemyAvatar"), "hit", 450);
+        enemyAtkLeft = enemyAtkMax;
+        setTimeout(()=>{
+          resolving=false;
+          drawn=[]; current=null; render();
+          resetPlan();
+          setFeedback(isCombo ? t("atk.choose_again_combo") : t("atk.choose_again"), "");
+        }, 450);
+      }
+      updateHud();
+    }, 360);
+  }
+
+  function enemyAttacks(){
+    if(!running || resolving || paused) return;
+    setState($("enemyAvatar"), "attack", 620);
+    setState($("mageAvatar"), "defend", 320);
+    mageHp -= curEnemy.atk;
+    streak=0;
+    sfxHurt(); redFlash(); shake();
+    dmgNum(centerOf($("mageAvatar")).x, centerOf($("mageAvatar")).y-20, "-"+curEnemy.atk, "hurt");
+    log(t("log.enemy_hit_you", {name:curEnemy.name, hp:curEnemy.atk}));
+    enemyAtkLeft = enemyAtkMax;
+    if(mageHp<=0){
+      mageHp=0; updateHud();
+      gameOver();
+      return;
+    }
+    setTimeout(()=>{ if(running && !paused) setState($("mageAvatar"), "hit", 450); }, 300);
+    updateHud();
+  }
+
+  function gameOver(){
+    running=false;
+    setState($("mageAvatar"), "death");
+    setTrack("death");   // единый путь смены темы (учитывает musicPref и не дублирует запуск)
+    $("overlayScore").textContent = t("over.score", {score:score});
+    $("startBtn").textContent = "🔄 Играть снова";
+    $("rulesList").style.display="none";
+    document.querySelector(".card h1").textContent = "Ты пал в бою...";
+    document.querySelector(".card .sub").textContent = "Маг побеждён. Но магия ждёт новой попытки!";
+    $("overlay").classList.remove("hidden");
+  }
+
+  function newGame(){
+    round=0; score=0; streak=0; mageHp=100; mageHpMax=100; mana=100;
+    inventory=new Set(); plan=[]; written=[]; paused=false; pauseAccum=0;
+    $("startBtn").textContent="▶ Начать бой";
+    $("rulesList").style.display="";
+    document.querySelector(".card h1").textContent="Маг Иероглифов";
+    document.querySelector(".card .sub").textContent="Тренажёр китайских иероглифов в виде игры";
+    $("overlay").classList.add("hidden");
+    $("pauseOverlay").classList.add("hidden");
+    $("pauseBtn").textContent="⏸";
+    $("game").classList.remove("paused");
+    setState($("mageAvatar"), "idle");
+    setState($("enemyAvatar"), "idle");
+    running=true;
+    startRound();
+  }
+
+  /* ================= ПАУЗА ================= */
+  function togglePause(){
+    if(!running || resolving) return;
+    if(!paused){
+      paused = true;
+      pausedAt = performance.now();
+      stopDemo();
+      sfxPause();
+      $("pauseOverlay").classList.remove("hidden");
+      $("pauseBtn").textContent = "▶";
+      $("game").classList.add("paused");
+    } else {
+      pauseAccum += performance.now() - pausedAt;
+      paused = false;
+      $("pauseOverlay").classList.add("hidden");
+      $("pauseBtn").textContent = "⏸";
+      $("game").classList.remove("paused");
+    }
+  }
+
+  /* ================= ВВОД (рисование) ================= */
+  function pointerPos(e){
+    const r=pad.getBoundingClientRect();
+    return [ clamp((e.clientX-r.left)/r.width*GRID,0,GRID), clamp((e.clientY-r.top)/r.height*GRID,0,GRID) ];
+  }
+  pad.addEventListener("pointerdown", e=>{
+    if(!running || resolving || demo.active || paused || written.length >= plan.length) return;
+    if(current || !e.isPrimary) return;   // уже рисуем / второй палец — игнорируем
+    e.preventDefault();
+    pad.setPointerCapture(e.pointerId);
+    activePointer = e.pointerId;
+    const p=pointerPos(e);
+    current=[p];
+    render();
+  });
+  pad.addEventListener("pointermove", e=>{
+    if(!current || e.pointerId !== activePointer) return;
+    e.preventDefault();
+    const r = pad.getBoundingClientRect();
+    /* Захват указателя доставляет события и за пределами доски. Такие точки
+       не берём: одна выброшенная точка раздувает bbox и обнуляет оценку штриха. */
+    if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) return;
+    const p=pointerPos(e);
+    const last=current[current.length-1];
+    if(Math.hypot(p[0]-last[0],p[1]-last[1])>3) current.push(p);
+    render();
+  });
+  function finishStroke(){
+    if(!current) return;
+    /* Одиночный тап — не штрих: раньше он превращался в фиктивный штрих
+       длиной 0.001, который всегда получал оценку 0 и портил результат руны. */
+    if(current.length<2){
+      current=null; activePointer=null; render();
+      setFeedback("Это был тап, а не штрих — веди линию.", "");
+      return;
+    }
+    const idx=drawn.length;
+    let q=null;
+    if(refStrokes && refStrokes[idx]){
+      q = shapeScore(refStrokes[idx], current);
+    }
+    drawn.push({pts:current, quality:q});
+    current=null; activePointer=null;
+    render();
+    if(refStrokes && refStrokes.length>0 && drawn.length>=refStrokes.length){
+      onRuneComplete();
+    } else {
+      setFeedback(t("board.stroke", {n:drawn.length}) + " / " + (refStrokes?refStrokes.length:"?"), "");
+    }
+  }
+  function onRuneComplete(){
+    if(!targetChar) return;
+    const acc = refStrokes.length ? computeAccuracy(refStrokes, drawn.map(s=>s.pts)) : 0.75;
+    written.push({ch: targetChar.ch, acc: acc});
+    inventory.add(targetChar.ch);
+    drawn=[]; current=null; activePointer=null;
+    render(); renderPlan(); renderInventory();
+
+    const accCls = acc>=0.8 ? "good" : (acc>=0.5 ? "" : "bad");
+    if(written.length >= plan.length){
+      setFeedback(attackMode==="combo" ? t("log.combo_ready") : t("log.spell_ready"), "good");
+      autoPending = true;
+      setTimeout(()=>{ if(autoPending) releaseSpell(); }, 220);
+    } else {
+      const nxt = plan[written.length];
+      setTarget(nxt);
+      renderPlan();
+      setFeedback(t("log.rune_ok", {word:written[written.length-1].ch, acc:Math.round(acc*100), next:nxt.ch}), accCls);
+    }
+  }
+  pad.addEventListener("pointerup", e=>{ if(current && e.pointerId===activePointer) finishStroke(); });
+  pad.addEventListener("pointercancel", e=>{ if(current && e.pointerId===activePointer) finishStroke(); });
+  /* Если захват указателя потерян (жест браузера, уход элемента), штрих иначе
+     остался бы «висеть» в current и следующий штрих затёр бы его. */
+  pad.addEventListener("lostpointercapture", e=>{ if(current && e.pointerId===activePointer) finishStroke(); });
+
+  /* ================= КНОПКИ ================= */
+  $("undoBtn").addEventListener("click", ()=>{ if(resolving||demo.active||paused) return; drawn.pop(); render(); setFeedback(t("board.undo_done"),""); });
+  $("clearBtn").addEventListener("click", ()=>{ if(resolving||demo.active||paused) return; drawn=[]; current=null; render(); setFeedback("Доска очищена",""); });
+  $("hintBtn").addEventListener("click", ()=>{
+    hintOn=!hintOn;
+    $("hintLabel").textContent = hintOn ? t("board.hint_contour") : t("board.hint_off");
+    render();
+  });
+  $("demoBtn").addEventListener("click", ()=>{
+    if(demo.active) stopDemo(); else startDemo();
+  });
+  $("muteBtn").addEventListener("click", ()=>{
+    muted=!muted; $("muteBtn").textContent = muted ? "🔇" : "🔊";
+    if(musicGain) musicGain.gain.value = muted ? 0 : MUSIC_VOL;
+  });
+  $("musicBtn").addEventListener("click", toggleMusic);
+  $("pauseBtn").addEventListener("click", togglePause);
+  $("resumeBtn").addEventListener("click", togglePause);
+  $("startBtn").addEventListener("click", ()=>{
+    audio();
+    newGame();
+
+  });
+
+  /* клавиши */
+  window.addEventListener("keydown", e=>{
+    const k=e.key.toLowerCase();
+    if(k==="escape" || k==="p"){ togglePause(); return; }
+    if(!running || paused) return;
+    if(k==="1"){ chooseAttack("single"); }
+    else if(k==="2"){ if(comboOffer) chooseAttack("combo"); }
+    else if(k==="z"){ $("undoBtn").click(); }
+    else if(k==="c"){ $("clearBtn").click(); }
+    else if(k==="h"){ $("hintBtn").click(); }
+    else if(k==="d"){ $("demoBtn").click(); }
+  });
+
+  /* ================= ИГРОВОЙ ЦИКЛ ================= */
+  function loop(now){
+    if(running){
+      const dt = now-lastNow; lastNow=now;
+      if(!resolving && !paused){
+        enemyAtkLeft -= dt;
+        if(enemyAtkLeft<=0){ enemyAtkLeft=0; enemyAttacks(); }
+        updateHud();
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  /* ================= СТАРТ ================= */
+  if(!window.HANZI_DATA){
+    document.querySelector(".card .sub").innerHTML = t("err.no_data");
+    $("startBtn").disabled = true;
+  }
+  updateHud();
+  renderPlan();
+  renderAttackChoice();
+  renderInventory();
+  render();
+  requestAnimationFrame(loop);
+  
+  /* ================= ПЕРЕВОД НАЗВАНИЙ ПРОТИВНИКОВ ================= */
+  /* В классической версии названия лежат прямо в коде — для них есть ключи.
+     В аниме-версии названия приходят из enemies-anime.js: если у противника
+     есть поле nameEn / nameZh, берём его, иначе оставляем русское. */
+  function enemyName(base, isBoss){
+    var l = (window.I18N ? window.I18N.getLang() : "ru");
+    var raw = base.name;
+    if(l === "en" && base.nameEn) raw = base.nameEn;
+    else if(l === "zh" && base.nameZh) raw = base.nameZh;
+    return isBoss ? (t("enemy.boss_prefix") + " · " + raw) : raw;
+  }
+  function enemyTitleText(e){
+    /* если ступени нет, хвост не показываем — иначе остался бы {n} */
+    var stage = (e && e.stage) ? (" · " + t("enemy.stage_of", {n:e.stage})) : "";
+    if(!e.isBoss) return t("enemy.foe") + stage;
+    var title = e.title || "";
+    var l = (window.I18N ? window.I18N.getLang() : "ru");
+    if(l === "en" && e.titleEn) title = e.titleEn;
+    else if(l === "zh" && e.titleZh) title = e.titleZh;
+    return t("enemy.boss") + (title ? " · " + title : "") + stage;
+  }
+
+  /* ================= ЗНАЧЕНИЕ ИЕРОГЛИФА ПО ЯЗЫКУ ================= */
+  /* В hanzi-data.js у знака есть пиньинь, русское и английское значение,
+     а китайскую глоссу добавляет hanzi-gloss-zh.js (поле [4]).
+     Если перевода нет — отдаём русский, чтобы подпись не осталась пустой. */
+  function charMean(meta){
+    if(!meta) return "";
+    var l = (window.I18N ? window.I18N.getLang() : "ru");
+    if(l === "zh") return meta.zh || meta.ru || meta.en || "";
+    if(l === "en") return meta.en || meta.ru || "";
+    return meta.ru || meta.en || "";
+  }
+
+  /* ================= ЛОКАЛИЗАЦИЯ ИНТЕРФЕЙСА ================= */
+  /* Расставляет переводы по data-i18n, обновляет подписи при смене языка
+     и перерисовывает текущий раунд, чтобы названия врагов тоже сменились. */
+  function i18nApply(){
+    if(typeof t !== "function") return;
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      var k = el.getAttribute("data-i18n");
+      el.textContent = t(k);
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach(function(el){
+      el.title = t(el.getAttribute("data-i18n-title"));
+    });
+    document.querySelectorAll(".langbtn").forEach(function(b){
+      var on = (b.getAttribute("data-lang") === window.I18N.getLang());
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.classList.toggle("on", on);
+    });
+    /* подписи, которые собираются в коде */
+    var f = $("feedback");
+    if(f && !f.textContent.trim()) f.textContent = t("board.hint.rune");
+    if(typeof curEnemy !== "undefined" && curEnemy && curEnemy.name && typeof startRound === "function"){
+      /* перерисовать текущий раунд тем же ходом — только подписи */
+      var keepHp = curEnemy.hp, keepMax = curEnemy.hpMax;
+      setEnemyArt(curEnemy.art, curEnemy.stage);
+      curEnemy.hp = keepHp; curEnemy.hpMax = keepMax;
+      var isB = curEnemy.isBoss;
+      /* через общий помощник: он же переводит титул босса */
+      $("enemyTitle").textContent = enemyTitleText(curEnemy);
+      var st = $("enemyStage");
+      if(st) st.textContent = t("enemy.stage", {n:curEnemy.stage});
+      $("enemyName").textContent = curEnemy.name;
+      /* значение иероглифа на доске тоже зависит от языка */
+      if(typeof targetChar !== "undefined" && targetChar){
+        $("runeMean").textContent = charMean(targetChar);
+        $("spellTag").textContent = t("board.runes_named", {mean:charMean(targetChar)});
+        renderInventory();
+      }
+      var hv = document.querySelector(".hintlabel");
+      if(hv) hv.textContent = hintOn ? t("board.hint_contour") : t("board.hint_off");
+    }
+    /* Подпись подсказки под полем уже переведена через data-i18n выше. */
+  }
+  window.__i18nApply = i18nApply;
+
+  /* Кнопки языка: переключение без перезагрузки страницы. */
+  document.querySelectorAll(".langbtn").forEach(function(b){
+    b.addEventListener("click", function(){
+      window.I18N.setLang(b.getAttribute("data-lang"));
+    });
+  });
+  if(window.I18N) window.I18N.onChange(function(){ i18nApply(); });
+  i18nApply();
+</script>
+
+  <script>
+  /* Отправляет родительской странице свою высоту: встроенное окно
+     подстраивается под игру и внутренней прокрутки не появляется. */
+  (function(){
+    var last = 0, tick = 0;
+    function report(){
+      var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      if (!isFinite(h) || h < 300) return;
+      if (Math.abs(h - last) < 8) return;      /* не дёргаем окно по мелочи */
+      last = h;
+      try { parent.postMessage({type:"hanzi-height", height:h}, "*"); } catch(e){}
+    }
+    window.addEventListener("load", report);
+    window.addEventListener("resize", report);
+    if (window.ResizeObserver) { try { new ResizeObserver(report).observe(document.body); } catch(e){} }
+    report();
+    /* защита от поздней смены контента (шрифты, картинки, скрипты) */
+    var n = 0; tick = setInterval(function(){ report(); if (++n > 12) clearInterval(tick); }, 500);
+  })();
+  </script>
+</body>
+</html>
