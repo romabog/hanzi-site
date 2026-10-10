@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Раньше стояло maximum-scale=1.0, user-scalable=no: это запрещает щипковый
+     зум (плохо для доступности), а на телефонах с вырезом не учитывает
+     безопасные зоны. Рисование защищено отдельно — touch-action:none на доске. -->
 <title data-i18n="app.title">Маг Иероглифов</title>
 <style>
   :root{
@@ -27,9 +30,18 @@
     background:radial-gradient(1200px 800px at 50% -10%, #232a56 0%, var(--bg2) 45%, var(--bg1) 100%);
     overflow-x:hidden;
     min-height:100%;
+    /* 100dvh учитывает то, что адресная строка мобильного браузера
+       уезжает при прокрутке: без него высота прыгает, и доска «дёргается». */
+    min-height:100vh;
+    min-height:100dvh;
     position:relative;
     user-select:none;
     -webkit-user-select:none;
+    /* Не даём прокрутке тянуть страницу снизу (pull-to-refresh мешает игре). */
+    overscroll-behavior-y:none;
+    /* Безопасные зоны: айфоны/айпады с вырезом и «динамическим островом». */
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
   }
   .stars{
     position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -217,7 +229,13 @@
   .seqlabel{text-align:center;font-size:13px;color:#8fa2dd;margin-top:6px;min-height:18px;}
   .seqlabel.combo{color:var(--gold);font-weight:700;}
 
-  .padbox{position:relative;width:100%;max-width:340px;}
+  /* Доска масштабируется и по ширине, и по высоте окна: на телефоне в альбомной
+     ориентации иначе поле уходит за экран и его приходится искать прокруткой.
+     Координаты рисунка всё равно пересчитываются через getBoundingClientRect,
+     поэтому качество и точность от размера не зависят.
+     Жёсткого потолка в 340px больше нет: планшет в альбомной ориентации шире
+     1100px и с прежним потолком получал доску МЕНЬШЕ, чем телефон. */
+  .padbox{position:relative;width:100%;max-width:min(100%, 56vh);}
   canvas#pad{
     width:100%;height:auto;aspect-ratio:1/1;display:block;border-radius:14px;
     background:radial-gradient(circle at 50% 45%, #1b2342 0%, #10152c 78%);
@@ -298,6 +316,22 @@
   .keyhint{margin-top:12px;font-size:12px;color:#6f82c4;}
   .pausetitle{font-size:40px;margin-bottom:8px;}
 
+  /* ===== Подстройка под планшет и телефон ===== */
+
+  /* Планшет в горизонтали: колонки остаются, но боковые панели уже,
+     а доска наоборот становится крупнее — места для неё теперь хватает. */
+  @media (max-width:1100px){
+    main.stage{grid-template-columns:150px 1fr 150px;gap:10px;}
+    .side{padding:12px 8px;gap:9px;}
+    .avatar{min-height:132px;}
+    .charSvg{width:118px;}
+    .avatar.boss{min-height:160px;}
+    .avatar.boss .charSvg{width:150px;}
+    .avatar.boss::before{width:200px;height:200px;}
+    .padbox{max-width:min(100%, 62vh);}
+  }
+
+  /* Узкий экран: одна колонка, панели ложатся в строку над и под доской. */
   @media (max-width:820px){
     main.stage{grid-template-columns:1fr;}
     .side{flex-direction:row;flex-wrap:wrap;justify-content:center;}
@@ -305,6 +339,56 @@
     .charSvg{width:118px;}
     .avatar.boss{min-height:162px;}
     .avatar.boss .charSvg{width:152px;}
+  }
+
+  /* Телефон: доска — главное, поэтому идёт первой, а панели компактнее.
+     Порядок задаём через order: разметку менять не пришлось. */
+  @media (max-width:560px){
+    #game{padding:10px 10px calc(20px + env(safe-area-inset-bottom));}
+    header.top{padding:9px 10px;gap:7px;margin-bottom:9px;}
+    .brand{font-size:15px;gap:7px;}
+    .brand .logo{font-size:20px;}
+    .hud{gap:9px;}
+    .hud .stat{font-size:12px;}
+    .hud .stat b{font-size:14px;}
+    .combo{min-width:30px;font-size:13px;}
+    button{padding:8px 10px;font-size:13px;}
+    .mutebtn{font-size:15px;padding:5px 8px;}
+
+    .board{order:1;padding:10px;gap:9px;}
+    .side{order:2;}
+    .runeBig{font-size:40px;}
+    .runemeta .pinyin{font-size:15px;}
+    .runemeta .mean{font-size:12px;}
+    .slot{width:42px;height:42px;font-size:24px;}
+    .seqbar{gap:6px;padding:6px;}
+    .side{padding:10px 8px;gap:8px;}
+    .avatar{min-height:100px;}
+    .charSvg{width:88px;}
+    .avatar.boss{min-height:122px;}
+    .avatar.boss .charSvg{width:108px;}
+    .avatar.boss::before{width:150px;height:150px;}
+    .padbox{max-width:min(100%, 52vh);}
+    .controls{gap:6px;}
+    .controls button{padding:8px 10px;font-size:13px;}
+    .feedback{font-size:13px;}
+    .seqlabel{font-size:12px;}
+  }
+
+  /* Очень низкий экран (телефон в альбомной ориентации): доска и так
+     ограничена высотой окна, панели ужимаются ещё сильнее. */
+  @media (max-height:520px){
+    .avatar{min-height:84px;}
+    .charSvg{width:76px;}
+    .avatar.boss{min-height:100px;}
+    .avatar.boss .charSvg{width:92px;}
+    .side h3{font-size:12px;}
+    .padbox{max-width:min(100%, 46vh);}
+  }
+
+  /* Крупные экраны: доске можно расти; главным ограничителем становится высота. */
+  @media (min-width:1400px){
+    .padbox{max-width:min(100%, 56vh);}
   }
 
   /* ===== Переключатель языка интерфейса ===== */
@@ -987,10 +1071,47 @@
 
   /* ================= ЗВУК ================= */
   let AC=null;
+  /* Телефоны и планшеты держат AudioContext в состоянии suspended, пока
+     пользователь не коснётся страницы, и САМИ приостанавливают звук, когда
+     вкладка уходит в фон, гаснет экран или приходит звонок. Без resume()
+     контекст остаётся немым навсегда — музыка «пропадает» и не возвращается.
+     Поэтому возобновляем его при каждом обращении и при возврате на вкладку. */
+  function resumeAudio(){
+    if(AC && AC.state==="suspended" && AC.resume){
+      try{ const p=AC.resume(); if(p && p.then) p.catch(function(){}); }catch(e){}
+    }
+  }
   function audio(){
-    if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(!AC){
+      try{
+        AC=new (window.AudioContext||window.webkitAudioContext)();
+        /* Прерывания (звонок, наушники, Siri) возвращают контекст в running
+           сами — тогда нужно вернуть планировщик в настоящее. */
+        if(AC && AC.addEventListener) AC.addEventListener("statechange", function(){
+          if(AC.state==="running") syncMusicClock();
+        });
+      }catch(e){}
+    }
+    resumeAudio();
     return AC;
   }
+  /* Разрыв в музыке почти всегда означает, что накопились ноты, которые
+     планировщик пытается доиграть за один заход. Возвращаем часы в «сейчас»,
+     иначе после возврата на вкладку звучит короткий залп вместо продолжения. */
+  function syncMusicClock(){
+    if(!AC || !currentSong) return;
+    if(AC.currentTime - nextNoteTime > 0.12) nextNoteTime = AC.currentTime + 0.06;
+  }
+  /* iOS запускает звук только из жеста пользователя — ловим самый первый тап,
+     а также возврат на вкладку, снятие блокировки экрана и переключение окна. */
+  ["pointerdown","touchstart","keydown"].forEach(function(ev){
+    window.addEventListener(ev, function once(){ resumeAudio(); }, {once:true, passive:true});
+  });
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){ resumeAudio(); syncMusicClock(); }
+  });
+  window.addEventListener("pageshow", function(){ resumeAudio(); syncMusicClock(); });
+  window.addEventListener("focus", function(){ resumeAudio(); syncMusicClock(); });
   function tone(freq,dur,type,vol,slide){
     const ac=audio(); if(!ac||muted) return;
     const T=ac.currentTime;
@@ -1324,6 +1445,10 @@
   }
   function musicScheduler(){
     const ac=audio(); if(!ac || !musicOn || !currentSong) return;
+    /* Пока контекст suspended, currentTime не идёт — планировать ноты
+       бессмысленно. Это происходит на телефоне, пока не было первого жеста,
+       или когда звук самовольно приостановила система. */
+    if(ac.state==="suspended"){ return; }
     const sd=currentSong.stepDur;
     while(nextNoteTime < ac.currentTime + 0.18){
       /* Если вкладка была в фоне (setInterval троттлится до >=1 с), nextNoteTime
@@ -1350,6 +1475,7 @@
     nextNoteTime=ac.currentTime+0.06;
     musicOn=true;
     mgain();
+    resumeAudio();
     stopMusicLoop();
     musicTimer=setInterval(musicScheduler,25);
     updateMusicBtn();

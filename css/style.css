@@ -35,6 +35,9 @@ body{
   background-attachment:fixed;
   line-height:1.6;
   overflow-x:hidden;
+  /* Безопасные зоны для телефонов с вырезом. */
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
 }
 
 img,svg{max-width:100%;}
@@ -159,12 +162,18 @@ a:hover{text-decoration:underline;}
 }
 .game-meta .pill b{color:var(--muted);}
 
+/* Высота окна игры задаётся в единицах экрана, а не жёсткими 900px.
+   Раньше на телефоне под игру отводилось 640px фиксированной высоты:
+   игра внутри уже адаптивная, и на узком экране половина окна пустовала,
+   а страница растягивалась на несколько экранов прокрутки.
+   clamp(минимум, желаемое, максимум) даёт разумную высоту везде. */
 .frame-box{
   position:relative;border:1px solid var(--border);border-radius:var(--radius);
-  background:var(--panel);overflow:hidden;min-height:900px;
+  background:var(--panel);overflow:hidden;
+  height:clamp(560px, 82vh, 900px);
   box-shadow:0 24px 70px -30px rgba(0,0,0,.9), inset 0 0 0 1px rgba(255,255,255,.03);
 }
-.frame-box iframe{display:block;width:100%;border:0;height:900px;background:transparent;}
+.frame-box iframe{display:block;width:100%;border:0;height:100%;background:transparent;}
 .frame-box .frame-note{
   position:absolute;inset:0;display:grid;place-content:center;text-align:center;
   gap:12px;color:var(--dim);font-size:15px;background:var(--bg2);z-index:2;
@@ -178,8 +187,8 @@ a:hover{text-decoration:underline;}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 .frame-hint{margin-top:12px;font-size:13px;color:var(--dim);text-align:center;}
-.frame-box:fullscreen{border-radius:0;min-height:100vh;}
-.frame-box:fullscreen iframe{height:100vh;}
+.frame-box:fullscreen{border-radius:0;height:100vh;height:100dvh;}
+.frame-box:fullscreen iframe{height:100%;}
 
 /* ---------- Карточки возможностей ---------- */
 .grid{display:grid;gap:16px;}
@@ -269,25 +278,106 @@ a:hover{text-decoration:underline;}
 .site-footer strong{color:var(--muted);}
 
 /* ---------- Адаптив ---------- */
+
+/* Планшет: сетки становятся двухколоночными, отступы умереннее. */
+@media (max-width:1100px){
+  .wrap{padding:0 16px;}
+  .hero{padding:62px 0 46px;}
+  .hero .glowchar{font-size:320px;}
+  .grid.f3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+  .steps{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+  .showcase{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+}
+
 @media (max-width:820px){
   .hero{padding:54px 0 40px;}
   .hero .glowchar{font-size:280px;top:0;}
   .section{padding:44px 0;}
-  .frame-box{min-height:760px;}
-  .frame-box iframe{height:760px;}
   .charwall{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;}
   .char{font-size:21px;border-radius:10px;}
-}
-@media (max-width:520px){
-  .site-header .wrap{min-height:56px;}
-  .brand{font-size:16px;}
-  .nav a{padding:7px 9px;font-size:13px;}
-  .btn{padding:11px 16px;font-size:14px;}
-  .vbtn{padding:9px 13px;font-size:13px;}
-  .frame-box{min-height:640px;}
-  .frame-box iframe{height:640px;}
+  .btn{padding:12px 18px;}
+  .card{padding:18px;}
+  .step{padding:18px 18px 18px 60px;}
+  .step::before{left:16px;top:16px;}
+  /* На планшете играем «в окне», но уже с запасом по высоте экрана. */
+  .frame-box{height:clamp(520px, 78vh, 820px);}
 }
 
+/* Телефон: шапка и навигация перестраиваются, кнопка на всю ширину,
+   окно игры занимает почти весь экран. */
+@media (max-width:560px){
+  .wrap{padding:0 13px;}
+  .site-header .wrap{min-height:56px;gap:10px;}
+
+  /* Меню уезжает во вторую строку и прокручивается вбок: иначе пять
+     пунктов ломаются на три строки и шапка съедает пол-экрана. */
+  .site-header .wrap{flex-wrap:wrap;}
+  .brand{font-size:16px;gap:9px;}
+  .brand .seal{width:32px;height:32px;font-size:18px;border-radius:9px;}
+  .nav{
+    order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;
+    gap:4px;padding-bottom:2px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .nav::-webkit-scrollbar{display:none;}
+  .nav a{padding:7px 10px;font-size:13px;flex:0 0 auto;white-space:nowrap;}
+
+  /* Кнопка «Играть» в шапке на телефоне только мешает — внизу есть крупная. */
+  .site-header .btn.primary.small{display:none;}
+  .langswitch{padding:2px;}
+  .langbtn{padding:6px 9px;font-size:12px;}
+
+  .hero{padding:40px 0 32px;}
+  .hero .glowchar{font-size:210px;top:-10px;opacity:.5;}
+  .hero h1{font-size:29px;}
+  .hero .lead{font-size:15.5px;}
+  .hero .sub{font-size:13.5px;margin-bottom:22px;}
+  .hero-actions{gap:9px;}
+  .hero-actions .btn{width:100%;}
+  .badges{gap:7px;margin-top:24px;}
+  .badge{font-size:12px;padding:6px 10px;}
+
+  .section{padding:36px 0;}
+  .section > .wrap > h2{font-size:23px;}
+
+  /* Игра: почти на весь экран, без лишней рамки. */
+  .frame-box{height:clamp(460px, 74vh, 700px);border-radius:14px;}
+  .frame-hint{font-size:12.5px;}
+  .game-meta{gap:7px;font-size:12.5px;}
+
+  .charwall{grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;}
+  .char{font-size:19px;border-radius:9px;}
+  .showcase{grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;}
+  .show-item{padding:11px;}
+  .show-item .art{min-height:120px;}
+  .show-item .art svg{width:96px;}
+  .show-item.boss .art svg{width:114px;}
+
+  .grid{gap:12px;}
+  .grid.f3{grid-template-columns:1fr;}
+  .steps{grid-template-columns:1fr;gap:11px;}
+  .site-footer{padding:26px 0 34px;}
+  .site-footer .wrap{flex-direction:column;gap:10px;}
+}
+
+/* Очень узкие телефоны (iPhone SE и подобные). */
+@media (max-width:380px){
+  .hero h1{font-size:25px;}
+  .hero .glowchar{font-size:170px;}
+  .charwall{grid-template-columns:repeat(auto-fill,minmax(38px,1fr));}
+  .nav a{padding:6px 8px;font-size:12.5px;}
+}
+
+/* Телефон в альбомной ориентации: высоты мало, поэтому окно игры
+   растягиваем на весь экран, а шапку ужимаем. */
+@media (max-height:520px) and (orientation:landscape){
+  .site-header .wrap{min-height:48px;}
+  .hero{padding:26px 0 20px;}
+  .hero .glowchar{font-size:150px;}
+  .frame-box{height:calc(100vh - 130px);min-height:300px;}
+}
+
+/* Уважаем системную настройку «меньше движения». */
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms !important;animation-iteration-count:1 !important;
     transition-duration:.001ms !important;}
